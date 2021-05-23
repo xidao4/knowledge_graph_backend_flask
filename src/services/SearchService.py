@@ -16,10 +16,3 @@ class SearchService:
             'code': 0,
             'answer': result
         }
-
-
-if __name__ == '__main__':
-    res = que.question_process("章子怡演过多少部电影？")
-    print(res)
-    res = que.question_process("卧虎藏龙是什么类型的电影？")
-    print(res)

@@ -3,7 +3,7 @@ pipeline {
     environment {
         registryUrl= "registry.cn-hangzhou.aliyuncs.com"
         registry_user= "ykxixi01"
-        registry_pass= "xiximangoquq01"
+        registry_pass= "1368xixideRegis"
         repo_url="sec3"
         image_name = "backend-coin-flask"
         container_name = "backend-coin-flask"

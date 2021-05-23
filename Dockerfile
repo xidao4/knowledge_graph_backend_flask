@@ -6,5 +6,5 @@ COPY ./data /app/data
 COPY ./start.sh /app/start.sh
 COPY ./requirements.txt /app/requirements.txt
 WORKDIR /app
-RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip3 install -r requirements.txt
 ENTRYPOINT ["sh","start.sh"]

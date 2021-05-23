@@ -1,4 +1,3 @@
 venv
 data/import.zip
 .idea
-src/__pycache__

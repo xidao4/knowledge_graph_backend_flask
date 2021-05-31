@@ -2,7 +2,6 @@ pipeline {
     agent none
     environment {
         registryUrl= "registry.cn-hangzhou.aliyuncs.com"
-        registryUrlVpc = "registry-vpc.cn-hangzhou.aliyuncs.com"
         registry_user= "ykxixi01"
         registry_pass= "1368xixideRegis"
         namespace="super-sec3"
@@ -37,9 +36,9 @@ pipeline {
             }
             steps{
                 sh 'docker login  --username=${registry_user} --password=${registry_pass} ${registryUrl}'
-                sh 'docker pull ${registryUrlVpc}/${namespace}/${image_name}:${BUILD_ID}'
+                sh 'docker pull ${registryUrl}/${namespace}/${image_name}:${BUILD_ID}'
                 sh "if (ps -ef| grep java|grep ${container_name}) then (docker stop ${container_name} && docker rm ${container_name}) fi"
-                sh "docker run -p 5000:5000 --name ${container_name} -v /log:/log -d ${registryUrlVpc}/${namespace}/${image_name}:${BUILD_ID}"
+                sh "docker run -p 5000:5000 --name ${container_name} -v /log:/log -d ${registryUrl}/${namespace}/${image_name}:${BUILD_ID}"
             }
         }
     }

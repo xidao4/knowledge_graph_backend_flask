@@ -16,7 +16,8 @@ class QuestionTemplate():
         self.q_template_dict = {
             3: self.person_info,
             6: self.relation_titles,
-            7: self.relation_two_people
+            7: self.relation_two_people,
+            12:self.like
         }
 
         # 连接数据库
@@ -53,8 +54,6 @@ class QuestionTemplate():
         final_answer = person_name + "人物简介:" + str(answer)
         return final_answer
 
-
-
     #6
     def relation_titles(self,idx):
         return
@@ -63,13 +62,42 @@ class QuestionTemplate():
     def relation_two_people(self,idx):
         return
 
+    #12
+    def like(self,idx):
+        person_name=self.get_one_person_name()
+        like_idx=self.question_word.index("喜欢")
+        nr_idx=self.question_flag.index('nr')
+        if nr_idx<like_idx:#nr喜欢谁
+            cql = f"match (m)-[r:`喜欢`]-(n) where m.label='{person_name}' return n.label"
+            print(cql)
+            answer = self.graph.run(cql)
+            answer_set = set(answer)
+            answer_list = list(answer_set)
+            if idx==0:
+                answer_str = "、".join(answer_list)
+                final_answer_str=person_name+"喜欢"+answer_str
+                return final_answer_str
+            else:
+                return answer_list
+        else:#谁喜欢nr
+            cql = f"match (m)-[r:`喜欢`]-(n) where n.label='{person_name}' return m.label"
+            print(cql)
+            answer = self.graph.run(cql)
+            answer_set = set(answer)
+            answer_list = list(answer_set)
+            if idx==0:
+                answer_str = "、".join(answer_list)
+                final_answer_str=answer_str+"喜欢"+person_name
+                return final_answer_str
+            else:
+                return answer_list
 
     def get_question_answer(self, question, template,idx):
         # 如果问题模板的格式不正确则结束
         assert len(str(template).strip().split("\t")) == 2
         template_id, template_str = int(str(template).strip().split("\t")[0]), str(template).strip().split("\t")[1]
         self.template_id = template_id
-        self.template_str2list = str(template_str).split()
+        #self.template_str2list = str(template_str).split()
 
         # 预处理问题
         question_word, question_flag = [], []

@@ -14,6 +14,6 @@ RUN pip install scikit_learn
 RUN pip install kanren
 COPY ./src /app/src
 COPY ./data /app/data
-COPY ./start.sh /app/start.sh
+COPY ./start.sh /app/src/start.sh
 WORKDIR /app/src
 ENTRYPOINT ["sh","start.sh"]

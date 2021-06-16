@@ -11,11 +11,15 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/search', methods=['POST'])
-def search():
+@app.route('/chat/getAnswer', methods=['POST'])
+def chat_getAnswer():
     req_data = APIUtils.parse_request(request)
-    return jsonify(SearchService.get_search_ans(**req_data))
+    return jsonify(SearchService.get_chat_ans(**req_data))
 
+@app.route('/search/getAnswer',methods=['POST'])
+def search_getAnswer():
+    req_data=APIUtils.parse_request(request)
+    return jsonify(SearchService.get_search_ans(**req_data))
 
 if __name__ == '__main__':
     # que = Question()

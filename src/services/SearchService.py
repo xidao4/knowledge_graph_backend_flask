@@ -10,9 +10,18 @@ class SearchService:
     search_cache = {}
 
     @classmethod
-    def get_search_ans(cls, question):
-        result = que.question_process(question)
+    def get_chat_ans(cls, question):
+        result = que.question_process(question,0)
         return {
             'code': 0,
             'answer': result
         }
+
+    @classmethod
+    def get_search_ans(cls, question):
+        ret = que.question_process(question,1)
+        return {
+            'code': 0,
+            'answer': ret
+        }
+

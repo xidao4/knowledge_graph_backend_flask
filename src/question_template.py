@@ -35,7 +35,7 @@ class QuestionTemplate():
         # print(result)
         # exit()
 
-    def get_question_answer(self, question, template):
+    def get_question_answer(self, question, template,idx):
         # 如果问题模板的格式不正确则结束
         assert len(str(template).strip().split("\t")) == 2
         template_id, template_str = int(str(template).strip().split("\t")[0]), str(template).strip().split("\t")[1]
@@ -53,8 +53,10 @@ class QuestionTemplate():
         self.question_flag = question_flag
         self.raw_question = question
         # 根据问题模板来做对应的处理，获取答案
-        answer = self.q_template_dict[template_id]()
+        answer = self.q_template_dict[template_id](idx)
         return answer
+
+    #TODO: 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；如果idx==1，用于语义搜索，直接返回查询出来的列表
 
     # 获取电影名字
     def get_movie_name(self):

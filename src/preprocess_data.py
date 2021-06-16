@@ -73,7 +73,7 @@ class Question():
         # 创建问题模板对象
         self.questiontemplate = QuestionTemplate()
 
-    def question_process(self, question):
+    def question_process(self, question,idx):
         # 接收问题
         self.raw_question = str(question).strip()
         # 对问题进行词性标注
@@ -81,7 +81,7 @@ class Question():
         # 得到问题的模板
         self.question_template_id_str = self.get_question_template()
         # 查询图数据库,得到答案
-        self.answer = self.query_template()
+        self.answer = self.query_template(idx)
         return (self.answer)
 
     def question_posseg(self):
@@ -104,6 +104,7 @@ class Question():
         print(result)
         return result
 
+    #TODO
     def get_question_template(self):
         # 抽象问题
         for item in ['nr', 'nm', 'ng']:
@@ -123,10 +124,10 @@ class Question():
         return question_template_id_str
 
     # 根据问题模板的具体类容，构造cql语句，并查询
-    def query_template(self):
+    def query_template(self,idx):
         # 调用问题模板类中的获取答案的方法
         try:
-            answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str)
+            answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str,idx)
         except:
             answer = "我也还不知道！"
         # answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str)

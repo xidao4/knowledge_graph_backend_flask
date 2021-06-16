@@ -15,4 +15,5 @@ RUN pip install kanren
 COPY ./src /app/src
 COPY ./data /app/data
 COPY ./start.sh /app/start.sh
+WORKDIR /app/src
 ENTRYPOINT ["sh","start.sh"]

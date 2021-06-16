@@ -1,5 +1,9 @@
 py2neo==4.3.0
 pandas
-Flask
-jieba
+Flask~=2.0.1
+jieba~=0.42.1
 scikit_learn
+
+kanren~=0.2.3
+sklearn~=0.0
+scikit-learn~=0.24.2

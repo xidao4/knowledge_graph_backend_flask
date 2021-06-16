@@ -37,7 +37,7 @@ pipeline {
             steps{
                 sh 'docker login  --username=${registry_user} --password=${registry_pass} ${registryUrl}'
                 sh 'docker pull ${registryUrl}/${namespace}/${image_name}:${BUILD_ID}'
-                sh "if (ps -ef| grep java|grep ${container_name}) then (docker stop ${container_name} && docker rm ${container_name}) fi"
+                sh "if (docker ps -a| grep ${container_name}) then (docker stop ${container_name} && docker rm ${container_name}) fi"
                 sh "docker run -p 5000:5000 --name ${container_name} -v /log:/log -d ${registryUrl}/${namespace}/${image_name}:${BUILD_ID}"
             }
         }

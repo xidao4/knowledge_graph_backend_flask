@@ -55,8 +55,6 @@ class Question_classify():
     def train_model_NB(self):
         X_train, y_train = self.train_x, self.train_y
         self.tv = TfidfVectorizer()
-        print('path', os.getcwd())
-        print('train set', X_train)
 
         train_data = self.tv.fit_transform(X_train).toarray()
         clf = MultinomialNB(alpha=0.01)

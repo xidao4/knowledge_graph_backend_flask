@@ -23,4 +23,4 @@ if __name__ == '__main__':
     # print(res)
     # res = que.question_process("卧虎藏龙是什么类型的电影？")
     # print(res)
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=True)

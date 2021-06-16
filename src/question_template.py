@@ -68,7 +68,7 @@ class QuestionTemplate():
         like_idx=self.question_word.index("喜欢")
         nr_idx=self.question_flag.index('nr')
         if nr_idx<like_idx:#nr喜欢谁
-            cql = f"match (m)-[r:`喜欢`]-(n) where m.label='{person_name}' return n.label"
+            cql = f"match (m)-[r:`喜欢`]->(n) where m.label='{person_name}' return n.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
@@ -80,7 +80,7 @@ class QuestionTemplate():
             else:
                 return answer_list
         else:#谁喜欢nr
-            cql = f"match (m)-[r:`喜欢`]-(n) where n.label='{person_name}' return m.label"
+            cql = f"match (m)-[r:`喜欢`]->(n) where n.label='{person_name}' return m.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)

@@ -16,6 +16,7 @@ def chat_getAnswer():
     req_data = APIUtils.parse_request(request)
     return jsonify(SearchService.get_chat_ans(**req_data))
 
+
 @app.route('/search/getAnswer',methods=['POST'])
 def search_getAnswer():
     req_data=APIUtils.parse_request(request)

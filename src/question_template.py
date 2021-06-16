@@ -12,20 +12,8 @@ import re
 class QuestionTemplate():
     def __init__(self):
         self.q_template_dict = {
-            0: self.get_movie_rating,
-            1: self.get_movie_releasedate,
-            2: self.get_movie_type,
-            3: self.get_movie_introduction,
-            4: self.get_movie_actor_list,
-            5: self.get_actor_info,
-            6: self.get_actor_act_type_movie,
-            7: self.get_actor_act_movie_list,
-            8: self.get_movie_rating_bigger,
-            9: self.get_movie_rating_smaller,
-            10: self.get_actor_movie_type,
-            11: self.get_cooperation_movie_list,
-            12: self.get_actor_movie_num,
-            13: self.get_actor_birthday
+            6: self.relation_titles,
+            7: self.relation_two_people
         }
 
         # 连接数据库
@@ -34,6 +22,13 @@ class QuestionTemplate():
         # result=self.graph.run("match (m:Movie)-[]->() where m.title='卧虎藏龙' return m.rating")
         # print(result)
         # exit()
+
+    def relation_titles(self,question,template,idx):
+        return
+
+    def relation_two_people(self,question,template,idx):
+        return
+
 
     def get_question_answer(self, question, template,idx):
         # 如果问题模板的格式不正确则结束

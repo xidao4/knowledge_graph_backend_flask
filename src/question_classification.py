@@ -72,5 +72,5 @@ class Question_classify():
 
 if __name__ == '__main__':
     qc = Question_classify()
-    q = qc.predict("贾宝玉的父亲是谁")
+    q = qc.predict("贾宝玉的详细信息")
     print(q)

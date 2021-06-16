@@ -9,9 +9,12 @@ from query import Query
 import re
 
 
+# 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；
+# 如果idx==1，用于语义搜索，直接返回查询出来的列表
 class QuestionTemplate():
     def __init__(self):
         self.q_template_dict = {
+            3: self.person_info,
             6: self.relation_titles,
             7: self.relation_two_people
         }
@@ -23,10 +26,41 @@ class QuestionTemplate():
         # print(result)
         # exit()
 
-    def relation_titles(self,question,template,idx):
+
+
+
+    # 获取人物名字
+    def get_one_person_name(self):
+        ## 获取nm在原问题中的下标
+        tag_index = self.question_flag.index("nr")
+        ## 获取电影名称
+        name = self.question_word[tag_index]
+        return name
+
+
+    #3
+    def person_info(self,idx):
+        person_name=self.get_one_person_name()
+        if idx==1:
+            answer_lst = []
+            answer_lst.append(person_name)
+            return answer_lst
+
+        cql = f"match (m)-[]->() where m.label='{person_name}' return m.info"
+        print(cql)
+        answer = self.graph.run(cql)[0]
+        print(answer)
+        final_answer = person_name + "人物简介:" + str(answer)
+        return final_answer
+
+
+
+    #6
+    def relation_titles(self,idx):
         return
 
-    def relation_two_people(self,question,template,idx):
+    #7
+    def relation_two_people(self,idx):
         return
 
 
@@ -51,15 +85,7 @@ class QuestionTemplate():
         answer = self.q_template_dict[template_id](idx)
         return answer
 
-    #TODO: 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；如果idx==1，用于语义搜索，直接返回查询出来的列表
 
-    # 获取电影名字
-    def get_movie_name(self):
-        ## 获取nm在原问题中的下标
-        tag_index = self.question_flag.index("nm")
-        ## 获取电影名称
-        movie_name = self.question_word[tag_index]
-        return movie_name
 
     def get_name(self, type_str):
         name_count = self.question_flag.count(type_str)
@@ -83,7 +109,8 @@ class QuestionTemplate():
     # 0:nm 评分
     def get_movie_rating(self):
         # 获取电影名称，这个是在原问题中抽取的
-        movie_name = self.get_movie_name()
+        #movie_name = self.get_movie_name()
+        movie_name=''
         cql = f"match (m:Movie)-[]->() where m.title='{movie_name}' return m.rating"
         print(cql)
         answer = self.graph.run(cql)[0]

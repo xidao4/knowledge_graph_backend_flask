@@ -47,8 +47,10 @@ class Question_classify():
                     for one_line in data_list:
                         word_list = list(jieba.cut(str(one_line).strip()))
                         # 将这一行加入结果集
+                        print(" ".join(word_list))
                         train_x.append(" ".join(word_list))
                         train_y.append(label_num)
+
         return train_x, train_y
 
     # 训练并测试模型-NB
@@ -73,10 +75,20 @@ class Question_classify():
 if __name__ == '__main__':
     qc = Question_classify()
     q = qc.predict("贾宝玉的父亲的父亲的父亲的兄弟的儿子的儿子的儿子的儿子的老婆")
-    print(q)
+    print(q) #6
+    q = qc.predict("贾宝玉的父亲是谁")
+    print(q) #6
+    q = qc.predict("谁是贾宝玉的父亲")
+    print(q)  #6
     q = qc.predict("谁是贾宝玉")
-    print(q)
+    print(q) #3
     q = qc.predict("贾宝玉是谁")
-    print(q)
+    print(q) #3
     q = qc.predict("贾宝玉")
-    print(q)
+    print(q) #3
+    # q = qc.predict("荣国府是哪些人的家")
+    # print(q) #8
+    q = qc.predict("贾宝玉住在哪")
+    print(q) #8
+    q = qc.predict("贾宝玉和林黛玉是什么关系")
+    print(q)  # 8

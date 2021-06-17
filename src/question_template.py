@@ -12,8 +12,8 @@ import re
 class QuestionTemplate():
     def __init__(self):
         self.q_template_dict = {
-            0: self.get_movie_rating,
-            1: self.get_movie_releasedate,
+            0: self.get_event_reason,
+            1: self.get_person_ending,
             2: self.get_movie_type,
             3: self.get_movie_introduction,
             4: self.get_movie_actor_list,
@@ -25,7 +25,8 @@ class QuestionTemplate():
             10: self.get_actor_movie_type,
             11: self.get_cooperation_movie_list,
             12: self.get_actor_movie_num,
-            13: self.get_actor_birthday
+            13: self.get_actor_birthday,
+            14: self.get_person_event
         }
 
         # 连接数据库
@@ -56,13 +57,21 @@ class QuestionTemplate():
         answer = self.q_template_dict[template_id]()
         return answer
 
-    # 获取电影名字
-    def get_movie_name(self):
-        ## 获取nm在原问题中的下标
-        tag_index = self.question_flag.index("nm")
-        ## 获取电影名称
-        movie_name = self.question_word[tag_index]
-        return movie_name
+    # 获取事件名称
+    def get_event_name(self):
+        # 获取ne在原问题中的下标
+        tag_index = self.question_flag.index("ne")
+        # 获取事件名称
+        event_name = self.question_word[tag_index]
+        return event_name
+
+    def get_sep_event_name(self):
+        # 获取nr、v在原问题中的下标
+        nr_index = self.question_flag.index("nr")
+        v_index = self.question_flag.index("v")
+        # 拼接得到事件名称
+        event_name = self.question_word[nr_index] + self.question_word[v_index]
+        return event_name
 
     def get_name(self, type_str):
         name_count = self.question_flag.count(type_str)
@@ -83,21 +92,24 @@ class QuestionTemplate():
         x = re.sub(r'\D', "", "".join(self.question_word))
         return x
 
-    # 0:nm 评分
-    def get_movie_rating(self):
-        # 获取电影名称，这个是在原问题中抽取的
-        movie_name = self.get_movie_name()
-        cql = f"match (m:Movie)-[]->() where m.title='{movie_name}' return m.rating"
+    # 0:ne 事件原因
+    def get_event_reason(self):
+        # 获取事件名称，这个是在原问题中抽取的
+        event_name = self.get_event_name()
+        cql = f"match (e:Event)-[]->() where e.label='{event_name}' return e.reason"
         print(cql)
-        answer = self.graph.run(cql)[0]
-        print(answer)
-        answer = round(answer, 2)
-        final_answer = movie_name + "电影评分为" + str(answer) + "分！"
-        return final_answer
+        answer = self.graph.run(cql)
+        if len(answer) > 0:
+            final_answer = answer[0]
+            print('答案: {}'.format(final_answer))
+            return final_answer
+        else:
+            print('[ERROR] 知识库中没有答案')
+            raise Exception
 
-    # 1:nm 上映时间
-    def get_movie_releasedate(self):
-        movie_name = self.get_movie_name()
+    # 1:nr 人物结局
+    def get_person_ending(self):
+        movie_name = self.get_event_name()
         cql = f"match(m:Movie)-[]->() where m.title='{movie_name}' return m.releasedate"
         print(cql)
         answer = self.graph.run(cql)[0]
@@ -106,7 +118,7 @@ class QuestionTemplate():
 
     # 2:nm 类型
     def get_movie_type(self):
-        movie_name = self.get_movie_name()
+        movie_name = self.get_event_name()
         cql = f"match(m:Movie)-[r:is]->(b) where m.title='{movie_name}' return b.name"
         print(cql)
         answer = self.graph.run(cql)
@@ -118,7 +130,7 @@ class QuestionTemplate():
 
     # 3:nm 简介
     def get_movie_introduction(self):
-        movie_name = self.get_movie_name()
+        movie_name = self.get_event_name()
         cql = f"match(m:Movie)-[]->() where m.title='{movie_name}' return m.introduction"
         print(cql)
         answer = self.graph.run(cql)[0]
@@ -127,7 +139,7 @@ class QuestionTemplate():
 
     # 4:nm 演员列表
     def get_movie_actor_list(self):
-        movie_name = self.get_movie_name()
+        movie_name = self.get_event_name()
         cql = f"match(n:Person)-[r:actedin]->(m:Movie) where m.title='{movie_name}' return n.name"
         print(cql)
         answer = self.graph.run(cql)
@@ -265,3 +277,18 @@ class QuestionTemplate():
         answer = self.graph.run(cql)[0]
         final_answer = actor_name + "的生日是" + answer + "。"
         return final_answer
+
+    # 14:nr v人物事件
+    def get_person_event(self):
+        # 获取事件名称，这个是在原问题中抽取的
+        event_name = self.get_sep_event_name()
+        cql = f"match (e:Event)-[]->() where e.label='{event_name}' return e.reason"
+        print(cql)
+        answer = self.graph.run(cql)
+        if len(answer) > 0:
+            final_answer = answer[0]
+            print('答案: {}'.format(final_answer))
+            return final_answer
+        else:
+            print('[ERROR] 知识库中没有答案')
+            raise Exception

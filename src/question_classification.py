@@ -69,8 +69,8 @@ class Question_classify():
         # print("question type:",y_predict)
         return y_predict
 
-#
+
 # if __name__ == '__main__':
 #     qc = Question_classify()
-#     q = qc.predict("张学友的个人信息")
+#     q = qc.predict("宝玉挨打在第几回")
 #     print(q)

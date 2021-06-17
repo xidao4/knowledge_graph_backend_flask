@@ -17,10 +17,11 @@ def chat_getAnswer():
     return jsonify(SearchService.get_chat_ans(**req_data))
 
 
-@app.route('/search/getAnswer',methods=['POST'])
+@app.route('/search/getAnswer', methods=['POST'])
 def search_getAnswer():
-    req_data=APIUtils.parse_request(request)
+    req_data = APIUtils.parse_request(request)
     return jsonify(SearchService.get_search_ans(**req_data))
+
 
 if __name__ == '__main__':
     # que = Question()

@@ -1,10 +1,3 @@
-"""
-9:nnt 参演评分 小于 x
-10:nnt 电影类型
-11:nnt nnr 合作 电影列表
-12:nnt 电影数量
-13:nnt 出生日期
-"""
 from query import Query
 import re
 import jieba.posseg
@@ -18,6 +11,7 @@ class QuestionTemplate():
         self.q_template_dict = {
             0: self.get_event_reason,
             1: self.get_person_ending,
+            2: self.get_event_time,
             3: self.person_info,
             4: self.location_info,
             5: self.event_info,
@@ -27,6 +21,7 @@ class QuestionTemplate():
             9: self.origin,
             10:self.like,
             11:self.help,
+            13: self.get_events_in_time,
             14: self.get_person_event
         }
         # self.titles=['哥哥','姐姐','姬妾']
@@ -119,15 +114,23 @@ class QuestionTemplate():
         event_name = self.question_word[nr_index] + self.question_word[v_index]
         return event_name
 
+    def get_time(self):
+        nt_index = self.question_flag.index("nt")
+        time_name = self.question_word[nt_index]
+        return time_name
+
     # 0:ne 事件原因
-    def get_event_reason(self):
+    def get_event_reason(self, idx):
         # 获取事件名称，这个是在原问题中抽取的
         event_name = self.get_event_name()
         cql = f"match (e:Event)-[]->() where e.label='{event_name}' return e.reason"
         print(cql)
         answer = self.graph.run(cql)
         if len(answer) > 0:
-            final_answer = answer[0]
+            if idx == 0:
+                final_answer = answer[0]
+            else:
+                final_answer = answer
             print('答案: {}'.format(final_answer))
             return final_answer
         else:
@@ -135,13 +138,40 @@ class QuestionTemplate():
             raise Exception
 
     # 1:nr 人物结局
-    def get_person_ending(self):
-        movie_name = self.get_event_name()
-        cql = f"match(m:Movie)-[]->() where m.title='{movie_name}' return m.releasedate"
+    def get_person_ending(self, idx):
+        person_name = self.get_one_person_name()
+        cql = f"match(m:Person)-[]->() where m.label='{person_name}' return m.ending"
         print(cql)
-        answer = self.graph.run(cql)[0]
-        final_answer = movie_name + "的上映时间是" + str(answer) + "！"
-        return final_answer
+        answer = self.graph.run(cql)
+        if len(answer) > 0:
+            if idx == 0:
+                final_answer = answer[0]
+            else:
+                final_answer = answer
+            print('答案: {}'.format(final_answer))
+            return final_answer
+        else:
+            print('[ERROR] 知识库中没有答案')
+            raise Exception
+
+    # 2:ne 事件在第几回
+    def get_event_time(self, idx):
+        # 获取事件名称，这个是在原问题中抽取的
+        event_name = self.get_event_name()
+        cql = f"match (e:Event) where e.label='{event_name}' " \
+            f"match p=(e)-[r:`发生在`]->(t) return t.label"
+        print(cql)
+        answer = self.graph.run(cql)
+        if len(answer) > 0:
+            if idx == 0:
+                final_answer = '{event}发生在{time}'.format(event=event_name, time=answer[0])
+            else:
+                final_answer = answer
+            print('答案: {}'.format(final_answer))
+            return final_answer
+        else:
+            print('[ERROR] 知识库中没有答案')
+            raise Exception
 
     #3
     def person_info(self,idx):
@@ -348,23 +378,36 @@ class QuestionTemplate():
             else:
                 return answer_list
 
-    def get_actor_birthday(self):
-        actor_name = self.get_name('nr')
-        cql = f"match(n:Person)-[]->() where n.name='{actor_name}' return n.birth"
+    # 13:nt 第几回发生了什么事件
+    def get_events_in_time(self, idx):
+        time = self.get_time()
+        cql = f"match (t:Time) where t.label='{time}' " \
+            f"match p=(e)-[r:`发生在`]->(t) return e.label"
         print(cql)
-        answer = self.graph.run(cql)[0]
-        final_answer = actor_name + "的生日是" + answer + "。"
-        return final_answer
+        answer = self.graph.run(cql)
+        if len(answer) > 0:
+            if idx == 0:
+                final_answer = "{time}发生的主要事件有" + '、'.join(answer)
+            else:
+                final_answer = answer
+            print('答案: {}'.format(final_answer))
+            return final_answer
+        else:
+            print('[ERROR] 知识库中没有答案')
+            raise Exception
 
-    # 14:nr v人物事件
-    def get_person_event(self):
+    # 14:nr v人物为什么事件
+    def get_person_event(self, idx):
         # 获取事件名称，这个是在原问题中抽取的
         event_name = self.get_sep_event_name()
         cql = f"match (e:Event)-[]->() where e.label='{event_name}' return e.reason"
         print(cql)
         answer = self.graph.run(cql)
         if len(answer) > 0:
-            final_answer = answer[0]
+            if idx == 0:
+                final_answer = answer[0]
+            else:
+                final_answer = answer
             print('答案: {}'.format(final_answer))
             return final_answer
         else:

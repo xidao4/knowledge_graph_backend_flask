@@ -73,15 +73,15 @@ class Question():
         # 创建问题模板对象
         self.questiontemplate = QuestionTemplate()
 
-    def question_process(self, question,idx):
+    def question_process(self, question, idx):
         # 接收问题
         self.raw_question = str(question).strip()
         # 对问题进行词性标注
         self.pos_quesiton = self.question_posseg()
-        print('pos_question',self.pos_quesiton)
+        print('pos_question', self.pos_quesiton)
         # 得到问题的模板
         self.question_template_id_str = self.get_question_template()
-        print('question_template_id_str',self.question_template_id_str)
+        print('question_template_id_str', self.question_template_id_str)
         # 查询图数据库,得到答案
         self.answer = self.query_template(idx)
         return (self.answer)
@@ -91,7 +91,7 @@ class Question():
         clean_question = re.sub(CLEAN_REGEX, "", self.raw_question)
         self.clean_question = clean_question
         question_seged = jieba.posseg.cut(str(clean_question))
-        print("question_seged",question_seged)
+        print("question_seged", question_seged)
         result = []
         question_word, question_flag = [], []
         for w in question_seged:
@@ -104,14 +104,13 @@ class Question():
         assert len(question_flag) == len(question_word)
         self.question_word = question_word
         self.question_flag = question_flag
-        print('question_word',question_word)
-        print('question_flag',question_flag)
+        print('question_word', question_word)
+        print('question_flag', question_flag)
         return result
-
 
     def get_question_template(self):
         # 抽象问题
-        for item in ['nr','ns','ne','nt']:
+        for item in ['nr', 'ns', 'ne', 'nt']:
             while item in self.question_flag:
                 ix = self.question_flag.index(item)
                 self.question_word[ix] = item
@@ -128,10 +127,10 @@ class Question():
         return question_template_id_str
 
     # 根据问题模板的具体类容，构造cql语句，并查询
-    def query_template(self,idx):
+    def query_template(self, idx):
         # 调用问题模板类中的获取答案的方法
         try:
-            answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str,idx)
+            answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str, idx)
         except:
             answer = "我也还不知道！"
         # answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str)

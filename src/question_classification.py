@@ -47,7 +47,7 @@ class Question_classify():
                     for one_line in data_list:
                         word_list = list(jieba.cut(str(one_line).strip()))
                         # 将这一行加入结果集
-                        print(" ".join(word_list))
+                        # print(" ".join(word_list))
                         train_x.append(" ".join(word_list))
                         train_y.append(label_num)
 

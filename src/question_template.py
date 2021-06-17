@@ -1,7 +1,7 @@
 from query import Query
 import re
 import jieba.posseg
-from py2neo.data import Node, Relationship,Path
+from py2neo.data import Node, Relationship, Path
 
 
 # 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；
@@ -19,8 +19,8 @@ class QuestionTemplate():
             7: self.relation_two_people,
             8: self.live_in,
             9: self.origin,
-            10:self.like,
-            11:self.help,
+            10: self.like,
+            11: self.help,
             13: self.get_events_in_time,
             14: self.get_person_event
         }
@@ -32,9 +32,6 @@ class QuestionTemplate():
         # result=self.graph.run("match (m:Movie)-[]->() where m.title='卧虎藏龙' return m.rating")
         # print(result)
         # exit()
-
-
-
 
     def get_question_answer(self, question, template, idx):
         # 如果问题模板的格式不正确则结束
@@ -57,7 +54,6 @@ class QuestionTemplate():
         answer = self.q_template_dict[template_id](idx)
         return answer
 
-
     # 获取人物名字
     def get_one_person_name(self):
         # 获取nm在原问题中的下标
@@ -74,7 +70,7 @@ class QuestionTemplate():
         # 获取ns在原问题中的下标
         try:
             tag_index = self.question_flag.index("ns")
-            #获取地点名称
+            # 获取地点名称
             name = self.question_word[tag_index]
             return name
         except:
@@ -91,8 +87,8 @@ class QuestionTemplate():
         except:
             return -1
 
-    #获取人物、地点、事件的Info的通用方法
-    def get_info(self,name):
+    # 获取人物、地点、事件的Info的通用方法
+    def get_info(self, name):
         cql = f"match (m) where m.label='{name}' return m.info"
         print(cql)
         answer = self.graph.run(cql)[0]
@@ -118,6 +114,12 @@ class QuestionTemplate():
         nt_index = self.question_flag.index("nt")
         time_name = self.question_word[nt_index]
         return time_name
+
+    def get_rela_nodes(self, label):
+        cql = f"match(m)-[r]->(n) where m.label='{label}' return r, n"
+        relas = self.graph.run(cql)
+        print(relas)
+        return relas
 
     # 0:ne 事件原因
     def get_event_reason(self, idx):
@@ -165,18 +167,19 @@ class QuestionTemplate():
         if len(answer) > 0:
             if idx == 0:
                 final_answer = '{event}发生在{time}'.format(event=event_name, time=answer[0])
+                return final_answer
             else:
-                final_answer = answer
-            print('答案: {}'.format(final_answer))
-            return final_answer
+                res = {'answer': answer[0], 'contentList': self.get_rela_nodes(answer[0])}
+                print('答案: {}'.format(res))
+                return res
         else:
             print('[ERROR] 知识库中没有答案')
             raise Exception
 
-    #3
-    def person_info(self,idx):
-        person_name=self.get_one_person_name()
-        if idx==1:
+    # 3
+    def person_info(self, idx):
+        person_name = self.get_one_person_name()
+        if idx == 1:
             answer_lst = []
             answer_lst.append(person_name)
             return answer_lst
@@ -212,20 +215,20 @@ class QuestionTemplate():
         final_answer = event_name + "事件简介:" + str(answer)
         return final_answer
 
-    #6
-    def relation_titles(self,idx):
-        nr_name=self.get_one_person_name()
-        titles=[]
+    # 6
+    def relation_titles(self, idx):
+        nr_name = self.get_one_person_name()
+        titles = []
         for i in range(len(self.question_flag)):
-            if self.question_flag[i]=='n':
+            if self.question_flag[i] == 'n':
                 titles.append(self.question_word[i])
-        #match (n)-[:`母亲`]->()-[:`丈夫`]->()-[:`姬妾`]->(m) where n.label='贾宝玉' return m.label
-        #贾宝玉的母亲的丈夫的姬妾是
+        # match (n)-[:`母亲`]->()-[:`丈夫`]->()-[:`姬妾`]->(m) where n.label='贾宝玉' return m.label
+        # 贾宝玉的母亲的丈夫的姬妾是
         print(titles)
         cql = f"match (n)-[:`{titles[0]}`]->"
-        for i in range(1,len(titles)):
-            cql+=f"()-[:`{titles[i]}`]->"
-        cql+=f"(m) where n.label='{nr_name}' return m.label"
+        for i in range(1, len(titles)):
+            cql += f"()-[:`{titles[i]}`]->"
+        cql += f"(m) where n.label='{nr_name}' return m.label"
         print(cql)
         answer = self.graph.run(cql)
         answer_set = set(answer)
@@ -234,34 +237,34 @@ class QuestionTemplate():
             return answer_list
         else:
             answer_str = "、".join(answer_list)
-            final_answer_str =  nr_name
+            final_answer_str = nr_name
             for ttl in titles:
-                final_answer_str+='的'+ttl
-            final_answer_str+='是' + answer_str
+                final_answer_str += '的' + ttl
+            final_answer_str += '是' + answer_str
             return final_answer_str
 
-    #7
-    def relation_two_people(self,idx):
+    # 7
+    def relation_two_people(self, idx):
         nr_list = []
         for i, flag in enumerate(self.question_flag):
             if flag == str('nr'):
                 nr_list.append(self.question_word[i])
-        cql=f"match (a:Person) where a.label='{nr_list[0]}' " \
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=(a)-[*..5]->(b) return p"
         print(cql)
         answer = self.graph.run(cql)
         answer_set = set(answer)
         answer_list = list(answer_set)
-        fret=[]
+        fret = []
         for mypath in answer_list:
-            ret=[]
+            ret = []
             for relationship in mypath.relationships:
-                raw_type=str(type(relationship))
+                raw_type = str(type(relationship))
                 print(raw_type)
-                begin=raw_type.rfind('.')
-                end=raw_type.rfind('\'')
-                mytype=raw_type[begin+1:end]
+                begin = raw_type.rfind('.')
+                end = raw_type.rfind('\'')
+                mytype = raw_type[begin + 1:end]
                 ret.append(mytype)
             # segments=mymap["segments"]
             # ret=[]
@@ -269,51 +272,51 @@ class QuestionTemplate():
             #     rel=segment["relationship"]["type"]
             #     ret.append(rel)
             fret.append(ret)
-        if idx==1: return fret
+        if idx == 1: return fret
 
-        final_answer=""
+        final_answer = ""
         for ret in fret:
-            answer=nr_list[0]
+            answer = nr_list[0]
             for title in ret:
-                answer+="的"+title
-            answer+="是"+nr_list[1]+"。"
-            final_answer+=answer
+                answer += "的" + title
+            answer += "是" + nr_list[1] + "。"
+            final_answer += answer
         return final_answer
 
-    #8
-    def live_in(self,idx):
-        #nr住在哪？
-        nr_name=self.get_one_person_name()
-        if nr_name==-1:#ns是谁的家？
-            ns_name=self.get_one_location_name()
+    # 8
+    def live_in(self, idx):
+        # nr住在哪？
+        nr_name = self.get_one_person_name()
+        if nr_name == -1:  # ns是谁的家？
+            ns_name = self.get_one_location_name()
             cql = f"match (m)-[r:`居住地`]->(n) where n.label='{ns_name}' return m.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
             answer_list = list(answer_set)
-            if idx==1:#search
+            if idx == 1:  # search
                 return answer_list
             else:
                 answer_str = "、".join(answer_list)
-                final_answer_str =  answer_str+'住在'+ns_name
+                final_answer_str = answer_str + '住在' + ns_name
                 return final_answer_str
-        else:#nr住在哪？
+        else:  # nr住在哪？
             nr_name = self.get_one_person_name()
             cql = f"match (m)-[r:`居住地`]->(n) where m.label='{nr_name}' return n.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
             answer_list = list(answer_set)
-            if idx==1:#search
+            if idx == 1:  # search
                 return answer_list
-            else:#chat
+            else:  # chat
                 answer_str = "、".join(answer_list)
-                final_answer_str =  nr_name+'住在'+answer_str
+                final_answer_str = nr_name + '住在' + answer_str
                 return final_answer_str
 
-    #9
-    def origin(self,idx):
-        nr_name=self.get_one_person_name()
+    # 9
+    def origin(self, idx):
+        nr_name = self.get_one_person_name()
         cql = f"match (m)-[r:`原籍`]->(n) where m.label='{nr_name}' return n.label"
         print(cql)
         answer = self.graph.run(cql)
@@ -326,54 +329,54 @@ class QuestionTemplate():
             final_answer_str = nr_name + '的原籍是' + answer_str
             return final_answer_str
 
-    #10
-    def like(self,idx):
-        person_name=self.get_one_person_name()
-        like_idx=self.question_word.index("喜欢")
-        nr_idx=self.question_flag.index('nr')
-        if nr_idx<like_idx:#nr喜欢谁
+    # 10
+    def like(self, idx):
+        person_name = self.get_one_person_name()
+        like_idx = self.question_word.index("喜欢")
+        nr_idx = self.question_flag.index('nr')
+        if nr_idx < like_idx:  # nr喜欢谁
             cql = f"match (m)-[r:`喜欢`]->(n) where m.label='{person_name}' return n.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
             answer_list = list(answer_set)
-            if idx==0:
+            if idx == 0:
                 answer_str = "、".join(answer_list)
-                final_answer_str=person_name+"喜欢"+answer_str
+                final_answer_str = person_name + "喜欢" + answer_str
                 return final_answer_str
             else:
                 return answer_list
-        else:#谁喜欢nr
+        else:  # 谁喜欢nr
             cql = f"match (m)-[r:`喜欢`]->(n) where n.label='{person_name}' return m.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
             answer_list = list(answer_set)
-            if idx==0:
+            if idx == 0:
                 answer_str = "、".join(answer_list)
-                final_answer_str=answer_str+"喜欢"+person_name
+                final_answer_str = answer_str + "喜欢" + person_name
                 return final_answer_str
             else:
                 return answer_list
 
-    #11
-    def help(self,idx):
+    # 11
+    def help(self, idx):
         nr_idx = self.question_flag.index("nr")
-        r_idx=self.question_flag.index("r")
+        r_idx = self.question_flag.index("r")
         nr_name = self.question_word[nr_idx]
-        if r_idx<nr_idx:#谁是贾宝玉的恩人
+        if r_idx < nr_idx:  # 谁是贾宝玉的恩人
             cql = f"match (m)-[r:`有恩`]->(n) where n.label='{nr_name}' return m.label"
             print(cql)
             answer = self.graph.run(cql)
             answer_set = set(answer)
             answer_list = list(answer_set)
-            if idx==0: #chat
+            if idx == 0:  # chat
                 answer_str = "、".join(answer_list)
-                final_answer_str=answer_str+"有恩于"+nr_name
+                final_answer_str = answer_str + "有恩于" + nr_name
                 return final_answer_str
             else:
                 return answer_list
-        else:#贾宝玉是谁的恩人
+        else:  # 贾宝玉是谁的恩人
             cql = f"match (m)-[r:`有恩`]->(n) where m.label='{nr_name}' return n.label"
             print(cql)
             answer = self.graph.run(cql)
@@ -423,16 +426,16 @@ class QuestionTemplate():
             raise Exception
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     # question_flag=['nr','ns','nt','你好']
     # try:
     #     tag_index = question_flag.index("ne")
     #     print(tag_index)
     # except:
     #     print('exception')
-    q1="谁帮助过贾宝玉"
+    q1 = "谁帮助过贾宝玉"
     question_seged = jieba.posseg.cut(q1)
-    result,question_word,question_flag=[],[],[]
+    result, question_word, question_flag = [], [], []
     for w in question_seged:
         temp_word = f"{w.word}/{w.flag}"
         result.append(temp_word)
@@ -443,7 +446,7 @@ if __name__=='__main__':
     print(question_word)
     print(question_flag)
 
-    q2="贾宝玉帮助过什么人"
+    q2 = "贾宝玉帮助过什么人"
     question_seged = jieba.posseg.cut(q2)
     result, question_word, question_flag = [], [], []
     for w in question_seged:
@@ -469,7 +472,7 @@ if __name__=='__main__':
     print(question_word)
     print(question_flag)
 
-    q4="贾宝玉的母亲的哥哥的妻子的丈夫的老师的姐姐的干娘的姬妾是谁"
+    q4 = "贾宝玉的母亲的哥哥的妻子的丈夫的老师的姐姐的干娘的姬妾是谁"
     jieba.load_userdict("../data/userdict3.txt")
     question_seged = jieba.posseg.cut(q4)
     result, question_word, question_flag = [], [], []

@@ -80,3 +80,5 @@ if __name__ == '__main__':
     print(q)
     q = qc.predict("贾宝玉")
     print(q)
+    q = qc.predict("宝玉挨打在第几回")
+    print(q)

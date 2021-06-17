@@ -3,6 +3,13 @@ import re
 import jieba.posseg
 from py2neo.data import Node, Relationship, Path
 
+id_name_dic = {
+    "['event']": 'eid',
+    "['time']": 'tid',
+    "['person']": 'pid',
+    "['location']": 'lid'
+}
+
 
 # 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；
 # 如果idx==1，用于语义搜索，直接返回查询出来的列表
@@ -115,11 +122,32 @@ class QuestionTemplate():
         time_name = self.question_word[nt_index]
         return time_name
 
-    def get_rela_nodes(self, label):
-        cql = f"match(m)-[r]->(n) where m.label='{label}' return r, n"
-        relas = self.graph.run(cql)
-        print(relas)
-        return relas
+    def get_rela_nodes(self, label, ori_label):
+        cql = f"match(m)-[r]->(n) where n.label='{label}' return r"
+        answer = self.graph.run(cql)
+        answer_set = set(answer)
+        answer_list = list(answer_set)
+        content_lst = []
+        for mypath in answer_list:
+            for relationship in mypath.relationships:
+                raw_type = str(type(relationship))
+                print(raw_type)
+                begin = raw_type.rfind('.')
+                end = raw_type.rfind('\'')
+                my_type = raw_type[begin + 1:end]
+                cql_rela = f"match(m)-[r:{my_type}]-(n) where n.label='{label}' and m.label <> '{ori_label}' return m"
+                answer_rela = self.graph.run(cql_rela)
+                ret = {}
+                for node in answer_rela:
+                    node = dict(node)
+                    ret['relation'] = my_type
+                    ret['title'] = node['label']
+                    ret['info'] = node['info']
+                    ret['categories'] = node['categories']
+                    ret['id'] = node[id_name_dic[node['categories']]]
+                    content_lst.append(ret)
+        return content_lst
+
 
     # 0:ne 事件原因
     def get_event_reason(self, idx):
@@ -169,7 +197,13 @@ class QuestionTemplate():
                 final_answer = '{event}发生在{time}'.format(event=event_name, time=answer[0])
                 return final_answer
             else:
-                res = {'answer': answer[0], 'contentList': self.get_rela_nodes(answer[0])}
+                res = {
+                    'answer': answer[0],
+                    'contentList': self.get_rela_nodes(answer[0], event_name),
+                    'answerList': [],
+                    'code': 0,
+                    'showGraphData': {}
+                }
                 print('答案: {}'.format(res))
                 return res
         else:

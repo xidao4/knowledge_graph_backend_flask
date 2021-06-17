@@ -176,10 +176,17 @@ class QuestionTemplate():
         if len(answer) > 0:
             if idx == 0:
                 final_answer = answer[0]
+                return final_answer
             else:
-                final_answer = answer
-            print('答案: {}'.format(final_answer))
-            return final_answer
+                res = {
+                    'answer': answer[0],
+                    'contentList': self.get_rela_nodes(person_name, person_name),
+                    'answerList': [],
+                    'code': 2,
+                    'showGraphData': {}
+                }
+                print('答案: {}'.format(res))
+                return res
         else:
             print('[ERROR] 知识库中没有答案')
             raise Exception
@@ -201,7 +208,7 @@ class QuestionTemplate():
                     'answer': answer[0],
                     'contentList': self.get_rela_nodes(answer[0], event_name),
                     'answerList': [],
-                    'code': 0,
+                    'code': 2,
                     'showGraphData': {}
                 }
                 print('答案: {}'.format(res))

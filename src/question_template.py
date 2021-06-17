@@ -8,7 +8,7 @@
 from query import Query
 import re
 import jieba.posseg
-from py2neo.data import Node, Relationship
+from py2neo.data import Node, Relationship,Path
 
 
 # 具体模板中，如果idx==0 ，用于问答系统，返回一句话（由查询出来的列表包装）；
@@ -218,18 +218,26 @@ class QuestionTemplate():
                 nr_list.append(self.question_word[i])
         cql=f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return p,relations(p)"
+            f"match p=(a)-[*..5]->(b) return p"
         print(cql)
         answer = self.graph.run(cql)
         answer_set = set(answer)
         answer_list = list(answer_set)
         fret=[]
-        for mymap in answer_list:
-            segments=mymap["segments"]
+        for mypath in answer_list:
             ret=[]
-            for segment in segments:
-                rel=segment["relationship"]["type"]
-                ret.append(rel)
+            for relationship in mypath.relationships:
+                raw_type=str(type(relationship))
+                print(raw_type)
+                begin=raw_type.rfind('.')
+                end=raw_type.rfind('\'')
+                mytype=raw_type[begin+1:end]
+                ret.append(mytype)
+            # segments=mymap["segments"]
+            # ret=[]
+            # for segment in segments:
+            #     rel=segment["relationship"]["type"]
+            #     ret.append(rel)
             fret.append(ret)
         if idx==1: return fret
 
@@ -240,7 +248,7 @@ class QuestionTemplate():
                 answer+="的"+title
             answer+="是"+nr_list[1]+"。"
             final_answer+=answer
-        return answer
+        return final_answer
 
     #8
     def live_in(self,idx):

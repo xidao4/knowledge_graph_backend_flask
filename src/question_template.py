@@ -842,65 +842,69 @@ class QuestionTemplate():
         else: return self.search9()
 
 
-    # 10
-    def like(self, idx):
-        person_name = self.get_one_person_name()
-        like_idx = self.question_word.index("喜欢")
-        nr_idx = self.question_flag.index('nr')
-        if nr_idx < like_idx:  # nr喜欢谁
-            cql = f"match (m)-[r:`喜欢`]->(n) where m.label='{person_name}' return n.label"
-            print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 0:
-                answer_str = "、".join(answer_list)
-                final_answer_str = person_name + "喜欢" + answer_str
-                return final_answer_str
-            else:
-                return answer_list
-        else:  # 谁喜欢nr
-            cql = f"match (m)-[r:`喜欢`]->(n) where n.label='{person_name}' return m.label"
-            print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 0:
-                answer_str = "、".join(answer_list)
-                final_answer_str = answer_str + "喜欢" + person_name
-                return final_answer_str
-            else:
-                return answer_list
+    # # 10
+    # def like(self, idx):
+    #     person_name = self.get_one_person_name()
+    #     like_idx = self.question_word.index("喜欢")
+    #     nr_idx = self.question_flag.index('nr')
+    #     if nr_idx < like_idx:  # nr喜欢谁
+    #         cql = f"match (m)-[r:`喜欢`]->(n) where m.label='{person_name}' return n.label"
+    #         print(cql)
+    #         answer = self.graph.run(cql)
+    #         answer_set = set(answer)
+    #         answer_list = list(answer_set)
+    #         if idx == 0:
+    #             answer_str = "、".join(answer_list)
+    #             final_answer_str = person_name + "喜欢" + answer_str
+    #             return final_answer_str
+    #         else:
+    #             return answer_list
+    #     else:  # 谁喜欢nr
+    #         cql = f"match (m)-[r:`喜欢`]->(n) where n.label='{person_name}' return m.label"
+    #         print(cql)
+    #         answer = self.graph.run(cql)
+    #         answer_set = set(answer)
+    #         answer_list = list(answer_set)
+    #         if idx == 0:
+    #             answer_str = "、".join(answer_list)
+    #             final_answer_str = answer_str + "喜欢" + person_name
+    #             return final_answer_str
+    #         else:
+    #             return answer_list
 
-    # 11
-    def help(self, idx):
-        nr_idx = self.question_flag.index("nr")
-        r_idx = self.question_flag.index("r")
-        nr_name = self.question_word[nr_idx]
-        if r_idx < nr_idx:  # 谁是贾宝玉的恩人
-            cql = f"match (m)-[r:`有恩`]->(n) where n.label='{nr_name}' return m.label"
-            print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 0:  # chat
-                answer_str = "、".join(answer_list)
-                final_answer_str = answer_str + "有恩于" + nr_name
-                return final_answer_str
-            else:
-                return answer_list
-        else:  # 贾宝玉是谁的恩人
-            cql = f"match (m)-[r:`有恩`]->(n) where m.label='{nr_name}' return n.label"
-            print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 0:  # chat
-                answer_str = "、".join(answer_list)
-                final_answer_str = nr_name + "有恩于" + answer_str
-                return final_answer_str
-            else:
-                return answer_list
+
+
+
+
+    # # 11
+    # def help(self, idx):
+    #     nr_idx = self.question_flag.index("nr")
+    #     r_idx = self.question_flag.index("r")
+    #     nr_name = self.question_word[nr_idx]
+    #     if r_idx < nr_idx:  # 谁是贾宝玉的恩人
+    #         cql = f"match (m)-[r:`有恩`]->(n) where n.label='{nr_name}' return m.label"
+    #         print(cql)
+    #         answer = self.graph.run(cql)
+    #         answer_set = set(answer)
+    #         answer_list = list(answer_set)
+    #         if idx == 0:  # chat
+    #             answer_str = "、".join(answer_list)
+    #             final_answer_str = answer_str + "有恩于" + nr_name
+    #             return final_answer_str
+    #         else:
+    #             return answer_list
+    #     else:  # 贾宝玉是谁的恩人
+    #         cql = f"match (m)-[r:`有恩`]->(n) where m.label='{nr_name}' return n.label"
+    #         print(cql)
+    #         answer = self.graph.run(cql)
+    #         answer_set = set(answer)
+    #         answer_list = list(answer_set)
+    #         if idx == 0:  # chat
+    #             answer_str = "、".join(answer_list)
+    #             final_answer_str = nr_name + "有恩于" + answer_str
+    #             return final_answer_str
+    #         else:
+    #             return answer_list
 
     # 13:nt 第几回发生了什么事件
     def get_events_in_time(self, idx):

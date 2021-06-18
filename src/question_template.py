@@ -212,19 +212,19 @@ class QuestionTemplate():
                 ret['categories'] = node['categories']
                 ret['id'] = str(node[id_name_dic[node['categories']]])
                 content_lst.append(ret)
-            if len(content_lst)>0: return content_lst
-            cql_rela = f"match(m)<-[r:{my_type}]-(n) where m.label='{label}' and n.label <> '{ori_label}' " \
-                f"return n"
-            answer_rela = self.graph.run(cql_rela)
-            for node in answer_rela:
-                ret = {}
-                node = dict(node)
-                ret['relation'] = "是"+my_type
-                ret['title'] = node['label']
-                ret['info'] = node['info']
-                ret['categories'] = node['categories']
-                ret['id'] = str(node[id_name_dic[node['categories']]])
-                content_lst.append(ret)
+            # if len(content_lst)>0: return content_lst
+            # cql_rela = f"match(m)<-[r:{my_type}]-(n) where m.label='{label}' and n.label <> '{ori_label}' " \
+            #     f"return n"
+            # answer_rela = self.graph.run(cql_rela)
+            # for node in answer_rela:
+            #     ret = {}
+            #     node = dict(node)
+            #     ret['relation'] = "是"+my_type
+            #     ret['title'] = node['label']
+            #     ret['info'] = node['info']
+            #     ret['categories'] = node['categories']
+            #     ret['id'] = str(node[id_name_dic[node['categories']]])
+            #     content_lst.append(ret)
         return content_lst
 
     def get_event_all(self, label):

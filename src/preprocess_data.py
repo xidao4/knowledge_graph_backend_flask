@@ -112,18 +112,21 @@ class Question():
         print('question_template_id_str', self.question_template_id_str)
         # 查询图数据库,得到答案
         self.answer = self.query_template(idx)
-        if self.answer=="我也还不知道！":
-            if roleId=="1":
-                self.answer="好姐姐，千万绕我这一遭，原是我搞忘了!"
-            elif roleId=="2":
-                self.answer="我不知，想来那是件难事，岂能人人都能知晓的。"
-            elif roleId=="3":
-                self.answer="想来也不是件易事，你放心，赶明儿我替你问问老太太太太。"
+        if idx==0:#chat
+            if self.answer=="我也还不知道！":
+                if roleId=="1":
+                    self.answer="好姐姐，千万绕我这一遭，原是我搞忘了!"
+                elif roleId=="2":
+                    self.answer="我不知，想来那是件难事，岂能人人都能知晓的。"
+                elif roleId=="3":
+                    self.answer="想来也不是件易事，你放心，赶明儿我替你问问老太太太太。"
+                else:
+                    self.answer="此事原不该问我，改日问老太太太太便是了。"
             else:
-                self.answer="此事原不该问我，改日问老太太太太便是了。"
-        else:
-            self.answer=self.get_answer_by_role(self.answer,roleId)
-        return (self.answer)
+                self.answer=self.get_answer_by_role(self.answer,roleId)
+            return self.answer
+        else:#search
+            return self.answer
 
     def question_posseg(self):
         jieba.load_userdict(USER_DICT_PATH)

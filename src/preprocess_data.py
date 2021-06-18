@@ -69,6 +69,8 @@ different_titles = {
     '林如海':  '姑父 父亲 林妹妹的父亲 林妹妹的父亲'
 }
 
+whole_name=['贾宝玉','林黛玉','薛宝钗','王熙凤']
+
 class Question():
     def __init__(self):
         # 初始化相关设置：读取词汇表，训练分类器，连接数据库
@@ -104,6 +106,9 @@ class Question():
     def question_process(self, question, roleId,idx):
         # 接收问题
         self.raw_question = str(question).strip()
+        #将“你”替换为人名
+        if '你' in self.raw_question:
+            self.raw_question=self.raw_question.replace('你',whole_name[int(roleId)-1])
         # 对问题进行词性标注
         self.pos_quesiton = self.question_posseg()
         print('pos_question', self.pos_quesiton)
@@ -120,9 +125,9 @@ class Question():
                     self.answer="我不知，想来那是件难事，岂能人人都能知晓的。"
                 elif roleId=="3":
                     self.answer="想来也不是件易事，你放心，赶明儿我替你问问老太太太太。"
-                else:
+                elif roleId=="4":
                     self.answer="此事原不该问我，改日问老太太太太便是了。"
-            else:
+            elif roleId!="0":
                 self.answer=self.get_answer_by_role(self.answer,roleId)
             return self.answer
         else:#search

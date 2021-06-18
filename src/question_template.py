@@ -435,7 +435,8 @@ class QuestionTemplate():
 
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return p"
+            f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\") return p"
+        print(cql)
         ret = self.graph.run(cql)
         # nodes=[]
         # edges=[]
@@ -473,7 +474,7 @@ class QuestionTemplate():
 
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return NODES(p)"
+            f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\")  return NODES(p)"
         ret = self.graph.run(cql)
         for mynodes in ret:
             for node in mynodes:

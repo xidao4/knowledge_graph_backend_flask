@@ -246,6 +246,8 @@ class QuestionTemplate():
     def get_event_reason(self, idx):
         # 获取事件名称，这个是在原问题中抽取的
         event_name = self.get_event_name()
+        if event_name in same_word_dic.keys():
+            event_name = same_word_dic[event_name]
         cql = f"match (e:Event)-[]->() where e.label='{event_name}' return e.reason"
         print(cql)
         answer = self.graph.run(cql)
@@ -270,6 +272,8 @@ class QuestionTemplate():
     # 1:nr 人物结局
     def get_person_ending(self, idx):
         person_name = self.get_one_person_name()
+        if person_name in same_word_dic.keys():
+            person_name = same_word_dic[person_name]
         cql = f"match(m:Person) where m.label='{person_name}' return m.ending"
         print(cql)
         answer = self.graph.run(cql)
@@ -326,6 +330,8 @@ class QuestionTemplate():
 
     def chat3(self):#answerList和contentList
         person_name = self.get_one_person_name()
+        if person_name in same_word_dic.keys():
+            person_name = same_word_dic[person_name]
         cql=f"match(n) where n.label='{person_name}' return n.info"
         ret=self.graph.run(cql)
         if len(ret)==0: raise Exception
@@ -335,6 +341,8 @@ class QuestionTemplate():
 
     def search3(self):
         person_name = self.get_one_person_name()
+        if person_name in same_word_dic.keys():
+            person_name = same_word_dic[person_name]
         cql = f"match(n) where n.label='{person_name}' return n"
         ret = self.graph.run(cql)
         if len(ret) == 0:
@@ -409,6 +417,8 @@ class QuestionTemplate():
 
     def chat5(self):#answerList和contentList
         name = self.get_one_event_name()
+        if name in same_word_dic.keys():
+            name = same_word_dic[name]
         cql=f"match(n) where n.label='{name}' return n.info"
         ret=self.graph.run(cql)
         if len(ret)==0: raise Exception
@@ -418,6 +428,8 @@ class QuestionTemplate():
 
     def search5(self):
         name = self.get_one_event_name()
+        if name in same_word_dic.keys():
+            name = same_word_dic[name]
         cql = f"match(n) where n.label='{name}' return n"
         ret = self.graph.run(cql)
         if len(ret) == 0:
@@ -450,6 +462,8 @@ class QuestionTemplate():
 
     def chat6(self):
         nr_name = self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         titles = []
         for i in range(len(self.question_flag)):
             if self.question_flag[i] == 'n':
@@ -473,6 +487,8 @@ class QuestionTemplate():
 
     def search6(self):#answer showGraphData
         nr_name = self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         titles = []
         for i in range(len(self.question_flag)):
             if self.question_flag[i] == 'n':
@@ -587,6 +603,10 @@ class QuestionTemplate():
         for i, flag in enumerate(self.question_flag):
             if flag == str('nr'):
                 nr_list.append(self.question_word[i])
+        if nr_list[0] in same_word_dic.keys():
+            nr_list[0] = same_word_dic[nr_list[0]]
+        if nr_list[1] in same_word_dic.keys():
+            nr_list[1] = same_word_dic[nr_list[1]]
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=shortestPath((a)-[*]->(b)) return p"
@@ -628,6 +648,10 @@ class QuestionTemplate():
         for i, flag in enumerate(self.question_flag):
             if flag == str('nr'):
                 nr_list.append(self.question_word[i])
+        if nr_list[0] in same_word_dic.keys():
+            nr_list[0] = same_word_dic[nr_list[0]]
+        if nr_list[1] in same_word_dic.keys():
+            nr_list[1] = same_word_dic[nr_list[1]]
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=shortestPath((a)-[*]->(b)) return p"
@@ -754,6 +778,8 @@ class QuestionTemplate():
             return final_answer_str
         else:# nr住在哪？
             nr_name = self.get_one_person_name()
+            if nr_name in same_word_dic.keys():
+                nr_name = same_word_dic[nr_name]
             cql = f"match (m)-[r:`居住地`]->(n) where m.label='{nr_name}' return n.label"
             print(cql)
             ret = self.graph.run(cql)
@@ -785,6 +811,8 @@ class QuestionTemplate():
                 content_list=self.get_rela_nodes(name,name)
         else:# nr住在哪？
             nr_name = self.get_one_person_name()
+            if nr_name in same_word_dic.keys():
+                nr_name = same_word_dic[nr_name]
             cql = f"match (m)-[r:`居住地`]->(n) where m.label='{nr_name}' return n"
             print(cql)
             ret = self.graph.run(cql)
@@ -818,6 +846,8 @@ class QuestionTemplate():
 
     def chat9(self):
         nr_name = self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         cql = f"match (m)-[r:`原籍`]->(n) where m.label='{nr_name}' return n.label"
         print(cql)
         ret = self.graph.run(cql)
@@ -828,6 +858,8 @@ class QuestionTemplate():
 
     def search9(self):
         nr_name = self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         cql = f"match (m)-[r:`原籍`]->(n) where m.label='{nr_name}' return n"
         print(cql)
         ret = self.graph.run(cql)
@@ -894,6 +926,8 @@ class QuestionTemplate():
 
     def chat12(self):
         nr_name=self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         cql=f"match (n)-[:`参与`]->(m:Event) where n.label='{nr_name}' return m.label"
         ret=self.graph.run(cql)
         if len(ret) == 0: raise Exception
@@ -903,6 +937,8 @@ class QuestionTemplate():
 
     def search12(self):
         nr_name = self.get_one_person_name()
+        if nr_name in same_word_dic.keys():
+            nr_name = same_word_dic[nr_name]
         cql = f"match (n)-[:`参与`]->(m:Event) where n.label='{nr_name}' return m"
         ret = self.graph.run(cql)
         if len(ret)==0: raise Exception
@@ -1043,7 +1079,7 @@ if __name__ == '__main__':
     #     print(tag_index)
     # except:
     #     print('exception')
-    q1 = "谁帮助过贾宝玉"
+    q1 = "谁是贾宝玉"
     question_seged = jieba.posseg.cut(q1)
     result, question_word, question_flag = [], [], []
     for w in question_seged:

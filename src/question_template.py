@@ -102,8 +102,6 @@ class QuestionTemplate():
             7: self.relation_two_people,
             8: self.live_in,
             9: self.origin,
-            10: self.like,
-            11: self.help,
             13: self.get_events_in_time,
             14: self.get_person_event
         }

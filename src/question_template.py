@@ -2,6 +2,7 @@ from query import Query
 import re
 import jieba.posseg
 from py2neo.data import Node, Relationship, Path
+import json
 
 id_name_dic = {
     "['event']": 'eid',
@@ -198,6 +199,10 @@ class QuestionTemplate():
         return time_name
 
     def get_rela_nodes(self, label, ori_label):
+        cql = f"match(m)-[r]-(n) where n.label='{label}' return r"
+        answer = self.graph.run(cql)
+        answer_set = set(answer)
+        answer_list = list(answer_set)
         content_lst = []
         for my_type in important_relas:
             cql_rela = f"match(m)-[r:{my_type}]->(n) where m.label='{label}' and n.label <> '{ori_label}' " \
@@ -223,6 +228,10 @@ class QuestionTemplate():
             'info': node['info'],
             'categories': node['categories'],
             'id': node[id_name_dic[node['categories']]]}
+        return ret
+    def get_node_relation_nodes(self,node_label,relation_label):
+        cql=f"match (n)-[:`{relation_label}`->(m) where n.label='{node_label}' return m]"
+        ret=self.graph.run(cql)
         return ret
 
     # 0:ne 事件原因
@@ -344,8 +353,7 @@ class QuestionTemplate():
         final_answer = event_name + "事件简介:" + str(answer)
         return final_answer
 
-    # 6
-    def relation_titles(self, idx):
+    def chat6(self):
         nr_name = self.get_one_person_name()
         titles = []
         for i in range(len(self.question_flag)):
@@ -353,27 +361,131 @@ class QuestionTemplate():
                 titles.append(self.question_word[i])
         # match (n)-[:`母亲`]->()-[:`丈夫`]->()-[:`姬妾`]->(m) where n.label='贾宝玉' return m.label
         # 贾宝玉的母亲的丈夫的姬妾是
-        print(titles)
         cql = f"match (n)-[:`{titles[0]}`]->"
         for i in range(1, len(titles)):
             cql += f"()-[:`{titles[i]}`]->"
         cql += f"(m) where n.label='{nr_name}' return m.label"
-        print(cql)
-        answer = self.graph.run(cql)
-        answer_set = set(answer)
-        answer_list = list(answer_set)
-        if idx == 1:  # search
-            return answer_list
-        else:
-            answer_str = "、".join(answer_list)
-            final_answer_str = nr_name
-            for ttl in titles:
-                final_answer_str += '的' + ttl
-            final_answer_str += '是' + answer_str
-            return final_answer_str
+        ret = self.graph.run(cql)
+        ret_set = set(ret)
+        ret_list = list(ret_set)
+        answer_str = "、".join(ret_list)
+        final_answer_str = nr_name
+        for ttl in titles:
+            final_answer_str += '的' + ttl
+        final_answer_str += '是' + answer_str
+        return final_answer_str
 
-    # 7
-    def relation_two_people(self, idx):
+    def search6(self):#answer showGraphData
+        nr_name = self.get_one_person_name()
+        titles = []
+        for i in range(len(self.question_flag)):
+            if self.question_flag[i] == 'n':
+                titles.append(self.question_word[i])
+
+        # cql=f"match (n) where n.label='{nr_name}' return n"
+        # ret=self.graph.run(cql)[0]
+        # mydict=dict(ret)
+        # start_node={}
+        # start_node['id']=mydict['pid']
+        # start_node['label'] =mydict['label']
+        # start_node['nodeType'] =mydict['nodeType']
+        # nodes.add(str(start_node))
+
+        # match (n)-[:`母亲`]->()-[:`丈夫`]->()-[:`姬妾`]->(m) where n.label='贾宝玉' return m.label
+        # 贾宝玉的母亲的丈夫的姬妾是
+        #match p=(n)-[:`母亲`]->()-[:`丈夫`]->()-[:`姬妾`]->(m) where n.label='贾宝玉' return p,NODES(p),RELATIONSHIPS(p)
+
+        cql = f"match (n)-[:`{titles[0]}`]->"
+        for i in range(1, len(titles)):
+            cql += f"()-[:`{titles[i]}`]->"
+        cql += f"(m) where n.label='{nr_name}' return m"
+        ret_list = self.graph.run(cql)
+        answer_list=[]
+        for ret in ret_list:
+            mydict=dict(ret)
+            answer={}
+            answer['title']=mydict['label']
+            answer['info']=mydict['info']
+            answer['categories'] = mydict['categories']
+            if answer['categories']=='[\'person\']':
+                answer['id']=mydict['pid']
+            elif answer['categories']=='[\'location\']':
+                answer['id']=mydict['lid']
+            elif answer['categories']=='[\'event\']':
+                answer['id']=mydict['eid']
+            else:
+                answer['id']=mydict['tid']
+            answer_list.append(answer)
+
+        nodes = set()
+        cql = f"match p=(n)-[:`{titles[0]}`]->"
+        for i in range(1, len(titles)):
+            cql += f"()-[:`{titles[i]}`]->"
+        cql += f"(m) where n.label='{nr_name}' return NODES(p)"
+        ret_list = self.graph.run(cql)
+        for mynodes in ret_list:
+            for node in mynodes:
+                displayNode={}
+                nodeDict = dict(node)
+                if nodeDict['categories'] == '[\'person\']':
+                    displayNode['id'] = nodeDict['pid']
+                elif nodeDict['categories'] == '[\'location\']':
+                    displayNode['id'] = nodeDict['lid']
+                elif nodeDict['categories'] == '[\'event\']':
+                    displayNode['id'] = nodeDict['eid']
+                else:
+                    displayNode['id'] = nodeDict['tid']
+                displayNode['label'] = nodeDict['label']
+                displayNode['nodeType'] = nodeDict['categories']
+                nodes.add(str(displayNode))
+
+        edges = set()
+        cql = f"match p=(n)-[:`{titles[0]}`]->"
+        for i in range(1, len(titles)):
+            cql += f"()-[:`{titles[i]}`]->"
+        cql += f"(m) where n.label='{nr_name}' return RELATIONSHIPS(p)"
+        ret_list = self.graph.run(cql)
+        for myedges in ret_list:
+            for edge in myedges:
+                displayEdge={}
+                edgeDict = dict(edge)
+                raw_type = str(type(edge))
+                print(raw_type)
+                begin = raw_type.rfind('.')
+                end = raw_type.rfind('\'')
+                mytype = raw_type[begin + 1:end]
+                displayEdge['label'] = mytype
+                displayEdge['source'] = str(edgeDict['from'])
+                displayEdge['target'] = str(edgeDict['to'])
+                edges.add(str(displayEdge))
+
+        new_nodes=[]
+        for ele in nodes:
+            new_nodes.append(eval(ele))
+        new_edges=[]
+        for ele in edges:
+            new_edges.append(eval(ele))
+        res = {
+            'answer': "",
+            'contentList': [],
+            'answerList': answer_list,
+            'code': 1,
+            'showGraphData': {
+                'nodes':new_nodes,
+                'edges':new_edges
+            }
+        }
+        print('答案: {}'.format(res))
+        return res
+
+    # 6
+    def relation_titles(self, idx):
+        if idx==0:
+            return self.chat6()
+        else:
+            return self.search6()
+
+    def chat7(self):
         nr_list = []
         for i, flag in enumerate(self.question_flag):
             if flag == str('nr'):
@@ -381,36 +493,133 @@ class QuestionTemplate():
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=(a)-[*..5]->(b) return p"
-        print(cql)
-        answer = self.graph.run(cql)
-        answer_set = set(answer)
-        answer_list = list(answer_set)
-        fret = []
-        for mypath in answer_list:
-            ret = []
+        ret = self.graph.run(cql)
+        paths=[]
+        for mypath in ret:
+            tmp_path=[]
             for relationship in mypath.relationships:
                 raw_type = str(type(relationship))
                 print(raw_type)
                 begin = raw_type.rfind('.')
                 end = raw_type.rfind('\'')
                 mytype = raw_type[begin + 1:end]
-                ret.append(mytype)
-            # segments=mymap["segments"]
-            # ret=[]
-            # for segment in segments:
-            #     rel=segment["relationship"]["type"]
-            #     ret.append(rel)
-            fret.append(ret)
-        if idx == 1: return fret
-
+                tmp_path.append(mytype)
+            paths.append(tmp_path)
         final_answer = ""
-        for ret in fret:
+        for path in paths:
             answer = nr_list[0]
-            for title in ret:
+            for title in path:
                 answer += "的" + title
             answer += "是" + nr_list[1] + "。"
             final_answer += answer
         return final_answer
+
+    def search7(self):
+        nr_list = []
+        for i, flag in enumerate(self.question_flag):
+            if flag == str('nr'):
+                nr_list.append(self.question_word[i])
+
+
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=(a)-[*..5]->(b) return p"
+        ret = self.graph.run(cql)
+        # nodes=[]
+        # edges=[]
+        nodes=set()
+        edges=set()
+        paths = []
+        for mypath in ret:
+            tmp_path = []
+            for relationship in mypath.relationships:
+                raw_type = str(type(relationship))
+                print(raw_type)
+                begin = raw_type.rfind('.')
+                end = raw_type.rfind('\'')
+                mytype = raw_type[begin + 1:end]
+                tmp_path.append(mytype)
+                #
+                displayEdge={}
+                edgeDict=dict(relationship)
+                #displayEdge['id']=edgeDict['id']
+                displayEdge['label']=mytype
+                #displayEdge['type']=edgeDict['type']
+                displayEdge['source']=str(edgeDict['from'])
+                displayEdge['target']=str(edgeDict['to'])
+                # if displayEdge not in edges:
+                #     edges.append(displayEdge)
+                edges.add(str(displayEdge))
+            # for node in mypath.nodes:
+            #     displayNode={}
+                # nodeDict=dict(node)
+                # displayNode['id']=nodeDict['id']
+                # displayNode['label']=nodeDict['label']
+                # displayNode['nodeType']=nodeDict['categories']
+                # nodes.add(str(displayNode))
+            paths.append(tmp_path)
+
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=(a)-[*..5]->(b) return NODES(p)"
+        ret = self.graph.run(cql)
+        for mynodes in ret:
+            for node in mynodes:
+                displayNode={}
+                nodeDict=dict(node)
+                displayNode['id']=nodeDict['pid']
+                displayNode['label']=nodeDict['label']
+                displayNode['nodeType']=nodeDict['categories']
+                # if displayNode not in nodes:
+                #     nodes.append(displayNode)
+                nodes.add(str(displayNode))
+
+        final_answer = ""
+        for path in paths:
+            answer = nr_list[0]
+            for title in path:
+                answer += "的" + title
+            answer += "是" + nr_list[1] + "。"
+            final_answer += answer
+
+        # answer和showGraphData
+        new_nodes=[]
+        new_edges=[]
+        for ele in nodes:
+            new_nodes.append(eval(ele))
+        for ele in edges:
+            new_edges.append(eval(ele))
+        res = {
+            'answer': final_answer,
+            'contentList': [],
+            'answerList': [],
+            'code': 1,
+            'showGraphData': {
+                'nodes':new_nodes,
+                'edges':new_edges
+            }
+        }
+        print('答案: {}'.format(res))
+        return res
+
+    # 7
+    def relation_two_people(self, idx):
+        if idx==0: return self.chat7()
+        else: return self.search7()
+        # answer = self.graph.run(cql)
+        # answer_set = set(answer)
+        # answer_list = list(answer_set)
+        # fret = []
+        # for mypath in answer_list:
+        #     ret = []
+        #     for relationship in mypath.relationships:
+        #         raw_type = str(type(relationship))
+        #         print(raw_type)
+        #         begin = raw_type.rfind('.')
+        #         end = raw_type.rfind('\'')
+        #         mytype = raw_type[begin + 1:end]
+        #         ret.append(mytype)
+        #     fret.append(ret)
 
     # 8
     def live_in(self, idx):

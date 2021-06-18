@@ -199,10 +199,6 @@ class QuestionTemplate():
         return time_name
 
     def get_rela_nodes(self, label, ori_label):
-        cql = f"match(m)-[r]-(n) where n.label='{label}' return r"
-        answer = self.graph.run(cql)
-        answer_set = set(answer)
-        answer_list = list(answer_set)
         content_lst = []
         for my_type in important_relas:
             cql_rela = f"match(m)-[r:{my_type}]->(n) where m.label='{label}' and n.label <> '{ori_label}' " \
@@ -787,7 +783,7 @@ class QuestionTemplate():
             else:
                 res = {
                     'answer': answer[0],
-                    'contentList': self.get_rela_nodes(person_name, person_name),
+                    'contentList': self.get_rela_nodes(event_name, event_name),
                     'answerList': [],
                     'code': 2,
                     'showGraphData': {}

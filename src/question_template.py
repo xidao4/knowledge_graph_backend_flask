@@ -589,9 +589,20 @@ class QuestionTemplate():
                 nr_list.append(self.question_word[i])
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return p"
-        ret = self.graph.run(cql)
-        if len(ret): raise Exception
+            f"match p=shortestPath((a)-[*]->(b)) return p"
+        print(cql)
+        ret1 = self.graph.run(cql)
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=shortestPath((b)-[*]->(a)) return p"
+        print(cql)
+        ret2 = self.graph.run(cql)
+        ret = []
+        for ele in ret1:
+            ret.append(ele)
+        for ele in ret2:
+            ret.append(ele)
+        if len(ret)==0: raise Exception
         paths=[]
         for mypath in ret:
             tmp_path=[]
@@ -617,14 +628,22 @@ class QuestionTemplate():
         for i, flag in enumerate(self.question_flag):
             if flag == str('nr'):
                 nr_list.append(self.question_word[i])
-
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return p"
-        ret = self.graph.run(cql)
-        if len(ret): raise Exception
-        # nodes=[]
-        # edges=[]
+            f"match p=shortestPath((a)-[*]->(b)) return p"
+        print(cql)
+        ret1 = self.graph.run(cql)
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=shortestPath((b)-[*]->(a)) return p"
+        print(cql)
+        ret2 = self.graph.run(cql)
+        ret = []
+        for ele in ret1:
+            ret.append(ele)
+        for ele in ret2:
+            ret.append(ele)
+        if len(ret)==0: raise  Exception
         nodes = set()
         edges = set()
         paths = []
@@ -640,36 +659,35 @@ class QuestionTemplate():
                 #
                 displayEdge = {}
                 edgeDict = dict(relationship)
-                # displayEdge['id']=edgeDict['id']
                 displayEdge['label'] = mytype
                 # displayEdge['type']=edgeDict['type']
                 displayEdge['source'] = str(edgeDict['from'])
                 displayEdge['target'] = str(edgeDict['to'])
-                # if displayEdge not in edges:
-                #     edges.append(displayEdge)
                 edges.add(str(displayEdge))
-            # for node in mypath.nodes:
-            #     displayNode={}
-            # nodeDict=dict(node)
-            # displayNode['id']=nodeDict['id']
-            # displayNode['label']=nodeDict['label']
-            # displayNode['nodeType']=nodeDict['categories']
-            # nodes.add(str(displayNode))
             paths.append(tmp_path)
 
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) return NODES(p)"
-        ret = self.graph.run(cql)
+            f"match p=shortestPath((a)-[*]->(b)) return NODES(p)"
+        print(cql)
+        ret1 = self.graph.run(cql)
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=shortestPath((b)-[*]->(a)) return NODES(p)"
+        print(cql)
+        ret2 = self.graph.run(cql)
+        ret = []
+        for ele in ret1:
+            ret.append(ele)
+        for ele in ret2:
+            ret.append(ele)
         for mynodes in ret:
             for node in mynodes:
                 displayNode = {}
                 nodeDict = dict(node)
-                displayNode['id'] = nodeDict['pid']
+                displayNode['id'] = str(nodeDict['pid'])
                 displayNode['label'] = nodeDict['label']
                 displayNode['nodeType'] = nodeDict['categories']
-                # if displayNode not in nodes:
-                #     nodes.append(displayNode)
                 nodes.add(str(displayNode))
 
         final_answer = ""

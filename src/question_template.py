@@ -217,6 +217,19 @@ class QuestionTemplate():
                 ret['categories'] = node['categories']
                 ret['id'] = str(node[id_name_dic[node['categories']]])
                 content_lst.append(ret)
+            if len(content_lst)>0: return content_lst
+            cql_rela = f"match(m)<-[r:{my_type}]-(n) where m.label='{label}' and n.label <> '{ori_label}' " \
+                f"return n"
+            answer_rela = self.graph.run(cql_rela)
+            for node in answer_rela:
+                ret = {}
+                node = dict(node)
+                ret['relation'] = "是"+my_type
+                ret['title'] = node['label']
+                ret['info'] = node['info']
+                ret['categories'] = node['categories']
+                ret['id'] = str(node[id_name_dic[node['categories']]])
+                content_lst.append(ret)
         return content_lst
 
     def get_event_all(self, label):
@@ -708,50 +721,126 @@ class QuestionTemplate():
 
 
     # 8
-    def live_in(self, idx):
-        # nr住在哪？
+
+    def chat8(self):
         nr_name = self.get_one_person_name()
         if nr_name == -1:  # ns是谁的家？
             ns_name = self.get_one_location_name()
             cql = f"match (m)-[r:`居住地`]->(n) where n.label='{ns_name}' return m.label"
             print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 1:  # search
-                return answer_list
-            else:
-                answer_str = "、".join(answer_list)
-                final_answer_str = answer_str + '住在' + ns_name
-                return final_answer_str
-        else:  # nr住在哪？
+            ret = self.graph.run(cql)
+            if len(ret)==0: raise Exception
+            answer_str = "、".join(ret)
+            final_answer_str = answer_str + '住在' + ns_name
+            return final_answer_str
+        else:# nr住在哪？
             nr_name = self.get_one_person_name()
             cql = f"match (m)-[r:`居住地`]->(n) where m.label='{nr_name}' return n.label"
             print(cql)
-            answer = self.graph.run(cql)
-            answer_set = set(answer)
-            answer_list = list(answer_set)
-            if idx == 1:  # search
-                return answer_list
-            else:  # chat
-                answer_str = "、".join(answer_list)
-                final_answer_str = nr_name + '住在' + answer_str
-                return final_answer_str
+            ret = self.graph.run(cql)
+            if len(ret)==0: raise Exception
+            answer_str = "、".join(ret)
+            final_answer_str = nr_name + '住在' + answer_str
+            return final_answer_str
 
-    # 9
-    def origin(self, idx):
+    def search8(self):
+        nr_name = self.get_one_person_name()
+        content_list=[]
+        if nr_name == -1:  # ns是谁的家？
+            ns_name = self.get_one_location_name()
+            cql = f"match (m)-[r:`居住地`]->(n) where n.label='{ns_name}' return m"
+            print(cql)
+            ret = self.graph.run(cql)
+            if len(ret) == 0: raise Exception
+            answer_list=[]
+            for person in ret:
+                answer={}
+                personNode=dict(person)
+                answer['title']=personNode['label']
+                answer['info']=personNode['info']
+                answer['id']=str(personNode['pid'])
+                answer['categories']=personNode['categories']
+                answer_list.append(answer)
+            if len(ret)==1:
+                name=answer_list[0]['title']
+                content_list=self.get_rela_nodes(name,name)
+        else:# nr住在哪？
+            nr_name = self.get_one_person_name()
+            cql = f"match (m)-[r:`居住地`]->(n) where m.label='{nr_name}' return n"
+            print(cql)
+            ret = self.graph.run(cql)
+            if len(ret)==0: raise Exception
+            answer_list = []
+            for place in ret:
+                answer = {}
+                placeNode = dict(place)
+                answer['title'] = placeNode['label']
+                answer['info'] = placeNode['info']
+                answer['id'] = str(placeNode['lid'])
+                answer['categories'] = placeNode['categories']
+                answer_list.append(answer)
+            if len(ret) == 1:
+                name=answer_list[0]['title']
+                content_list = self.get_rela_nodes(name,name)
+        res = {
+            'answer': "",
+            'contentList': content_list,
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
+
+    #8
+    def live_in(self, idx):
+        if idx==0:return self.chat8()
+        else: return self.search8()
+
+    def chat9(self):
         nr_name = self.get_one_person_name()
         cql = f"match (m)-[r:`原籍`]->(n) where m.label='{nr_name}' return n.label"
         print(cql)
-        answer = self.graph.run(cql)
-        answer_set = set(answer)
-        answer_list = list(answer_set)
-        if idx == 1:  # search
-            return answer_list
-        else:
-            answer_str = "、".join(answer_list)
-            final_answer_str = nr_name + '的原籍是' + answer_str
-            return final_answer_str
+        ret = self.graph.run(cql)
+        if len(ret)==0: raise Exception
+        answer_str = "、".join(ret)
+        final_answer_str = nr_name + '的原籍是' + answer_str
+        return final_answer_str
+
+    def search9(self):
+        nr_name = self.get_one_person_name()
+        cql = f"match (m)-[r:`原籍`]->(n) where m.label='{nr_name}' return n"
+        print(cql)
+        ret = self.graph.run(cql)
+        if len(ret) == 0: raise Exception
+        answer_list=[]
+        content_list=[]
+        for place in ret:
+            answer = {}
+            placeNode = dict(place)
+            answer['title'] = placeNode['label']
+            answer['info'] = placeNode['info']
+            answer['id'] = str(placeNode['lid'])
+            answer['categories'] = placeNode['categories']
+            answer_list.append(answer)
+        if len(ret) == 1:
+            name = answer_list[0]['title']
+            content_list = self.get_rela_nodes(name, name)
+        res = {
+            'answer': "",
+            'contentList': content_list,
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
+
+    # 9
+    def origin(self, idx):
+        if idx==0: return self.chat9()
+        else: return self.search9()
+
 
     # 10
     def like(self, idx):

@@ -344,12 +344,14 @@ class QuestionTemplate():
             raise Exception
         else:
             ret = ret[0]
-        answer_list = {}
+        answer_list = []
         nodeDict = dict(ret)
-        answer_list['title'] = nodeDict['label']
-        answer_list['info'] = nodeDict['info']
-        answer_list['id'] = str(nodeDict['pid'])
-        answer_list['categories'] = nodeDict['categories']
+        answer={}
+        answer['title'] = nodeDict['label']
+        answer['info'] = nodeDict['info']
+        answer['id'] = str(nodeDict['pid'])
+        answer['categories'] = nodeDict['categories']
+        answer_list.append(answer)
 
         res = {
             'answer': "",
@@ -383,12 +385,14 @@ class QuestionTemplate():
             raise Exception
         else:
             ret = ret[0]
-        answer_list = {}
+        answer_list = []
         nodeDict = dict(ret)
-        answer_list['title'] = nodeDict['label']
-        answer_list['info'] = nodeDict['info']
-        answer_list['id'] = str(nodeDict['lid'])
-        answer_list['categories'] = nodeDict['categories']
+        answer={}
+        answer['title'] = nodeDict['label']
+        answer['info'] = nodeDict['info']
+        answer['id'] = str(nodeDict['lid'])
+        answer['categories'] = nodeDict['categories']
+        answer_list.append(answer)
 
         res = {
             'answer': "",
@@ -423,12 +427,14 @@ class QuestionTemplate():
             raise Exception
         else:
             ret = ret[0]
-        answer_list = {}
+        answer_list = []
+        answer={}
         nodeDict = dict(ret)
-        answer_list['title'] = nodeDict['label']
-        answer_list['info'] = nodeDict['info']
-        answer_list['id'] = str(nodeDict['eid'])
-        answer_list['categories'] = nodeDict['categories']
+        answer['title'] = nodeDict['label']
+        answer['info'] = nodeDict['info']
+        answer['id'] = str(nodeDict['eid'])
+        answer['categories'] = nodeDict['categories']
+        answer_list.append(answer)
 
         res = {
             'answer': "",

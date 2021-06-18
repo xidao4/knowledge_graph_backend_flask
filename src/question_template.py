@@ -317,13 +317,13 @@ class QuestionTemplate():
             answer['info']=mydict['info']
             answer['categories'] = mydict['categories']
             if answer['categories']=='[\'person\']':
-                answer['id']=mydict['pid']
+                answer['id']=str(mydict['pid'])
             elif answer['categories']=='[\'location\']':
-                answer['id']=mydict['lid']
+                answer['id']=str(mydict['lid'])
             elif answer['categories']=='[\'event\']':
-                answer['id']=mydict['eid']
+                answer['id']=str(mydict['eid'])
             else:
-                answer['id']=mydict['tid']
+                answer['id']=str(mydict['tid'])
             answer_list.append(answer)
 
         nodes = set()
@@ -337,13 +337,13 @@ class QuestionTemplate():
                 displayNode={}
                 nodeDict = dict(node)
                 if nodeDict['categories'] == '[\'person\']':
-                    displayNode['id'] = nodeDict['pid']
+                    displayNode['id'] = str(nodeDict['pid'])
                 elif nodeDict['categories'] == '[\'location\']':
-                    displayNode['id'] = nodeDict['lid']
+                    displayNode['id'] = str(nodeDict['lid'])
                 elif nodeDict['categories'] == '[\'event\']':
-                    displayNode['id'] = nodeDict['eid']
+                    displayNode['id'] = str(nodeDict['eid'])
                 else:
-                    displayNode['id'] = nodeDict['tid']
+                    displayNode['id'] = str(nodeDict['tid'])
                 displayNode['label'] = nodeDict['label']
                 displayNode['nodeType'] = nodeDict['categories']
                 nodes.add(str(displayNode))
@@ -433,11 +433,24 @@ class QuestionTemplate():
                 nr_list.append(self.question_word[i])
 
 
+        # cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+        #     f"match (b:Person) where b.label='{nr_list[1]}' " \
+        #     f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\") return p"
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\") return p"
+            f"match p=shortestPath((a)-[*]->(b)) return p"
         print(cql)
-        ret = self.graph.run(cql)
+        ret1 = self.graph.run(cql)
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=shortestPath((b)-[*]->(a)) return p"
+        print(cql)
+        ret2 = self.graph.run(cql)
+        ret=[]
+        for ele in ret1:
+            ret.append(ele)
+        for ele in ret2:
+            ret.append(ele)
         # nodes=[]
         # edges=[]
         nodes=set()
@@ -472,15 +485,29 @@ class QuestionTemplate():
                 # nodes.add(str(displayNode))
             paths.append(tmp_path)
 
+        # cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+        #     f"match (b:Person) where b.label='{nr_list[1]}' " \
+        #     f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\")  return NODES(p)"
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=(a)-[*..5]->(b) where all(x in NODES(p) where x.categories<>\"['event']\")  return NODES(p)"
-        ret = self.graph.run(cql)
+            f"match p=shortestPath((a)-[*]->(b)) return NODES(p)"
+        print(cql)
+        ret1 = self.graph.run(cql)
+        cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
+            f"match (b:Person) where b.label='{nr_list[1]}' " \
+            f"match p=shortestPath((b)-[*]->(a)) return NODES(p)"
+        print(cql)
+        ret2 = self.graph.run(cql)
+        ret=[]
+        for ele in ret1:
+            ret.append(ele)
+        for ele in ret2:
+            ret.append(ele)
         for mynodes in ret:
             for node in mynodes:
                 displayNode={}
                 nodeDict=dict(node)
-                displayNode['id']=nodeDict['pid']
+                displayNode['id']=str(nodeDict['pid'])
                 displayNode['label']=nodeDict['label']
                 displayNode['nodeType']=nodeDict['categories']
                 # if displayNode not in nodes:

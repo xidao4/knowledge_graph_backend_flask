@@ -102,6 +102,7 @@ class QuestionTemplate():
             7: self.relation_two_people,
             8: self.live_in,
             9: self.origin,
+            12:self.get_events_by_person,
             13: self.get_events_in_time,
             14: self.get_person_event
         }
@@ -873,7 +874,46 @@ class QuestionTemplate():
     #             return answer_list
 
 
+    def chat12(self):
+        nr_name=self.get_one_person_name()
+        cql=f"match (n)-[:`参与`]->(m:Event) where n.label='{nr_name}' return m.label"
+        ret=self.graph.run(cql)
+        if len(ret) == 0: raise Exception
+        answer="、".join(ret)
+        final_answer=nr_name+"参与的事件有"+answer
+        return final_answer
 
+    def search12(self):
+        nr_name = self.get_one_person_name()
+        cql = f"match (n)-[:`参与`]->(m:Event) where n.label='{nr_name}' return m"
+        ret = self.graph.run(cql)
+        if len(ret)==0: raise Exception
+        answer_list=[]
+        for event in ret:
+            answer={}
+            eventNode=dict(event)
+            answer['title']=eventNode['label']
+            answer['info']=eventNode['info']
+            answer['id']=str(eventNode['eid'])
+            answer['categories']=eventNode['categories']
+            answer_list.append(answer)
+        content_list=[]
+        if len(answer_list)==1:
+            content_list=self.get_rela_nodes(answer['title'],answer['title'])
+        res = {
+            'answer': "",
+            'contentList': content_list,
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
+
+    #12
+    def get_events_by_person(self,idx):
+        if idx==0: return self.chat12()
+        else: return self.search12()
 
 
     # # 11

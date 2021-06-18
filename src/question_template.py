@@ -211,7 +211,7 @@ class QuestionTemplate():
                 ret['title'] = node['label']
                 ret['info'] = node['info']
                 ret['categories'] = node['categories']
-                ret['id'] = node[id_name_dic[node['categories']]]
+                ret['id'] = str(node[id_name_dic[node['categories']]])
                 content_lst.append(ret)
         return content_lst
 
@@ -310,44 +310,125 @@ class QuestionTemplate():
             print('[ERROR] 知识库中没有答案')
             raise Exception
 
+
+
+    def chat3(self):#answerList和contentList
+        person_name = self.get_one_person_name()
+        cql=f"match(n) where n.label='{person_name}' return n.info"
+        ret=self.graph.run(cql)
+        if len(ret)==0: raise Exception
+        else: ret=ret[0]
+        final_answer = person_name + "人物简介:" + str(ret)
+        return final_answer
+
+    def search3(self):
+        person_name = self.get_one_person_name()
+        cql = f"match(n) where n.label='{person_name}' return n"
+        ret = self.graph.run(cql)
+        if len(ret) == 0:
+            raise Exception
+        else:
+            ret = ret[0]
+        answer_list = {}
+        nodeDict = dict(ret)
+        answer_list['title'] = nodeDict['label']
+        answer_list['info'] = nodeDict['info']
+        answer_list['id'] = str(nodeDict['pid'])
+        answer_list['categories'] = nodeDict['categories']
+
+        res = {
+            'answer': "",
+            'contentList': self.get_rela_nodes(person_name,person_name),
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
+
     # 3
     def person_info(self, idx):
-        person_name = self.get_one_person_name()
-        if idx == 1:
-            answer_lst = []
-            answer_lst.append(person_name)
-            return answer_lst
+        if idx==0: return self.chat3()
+        else: return self.search3()
 
-        answer = self.get_info(person_name)
-        print(answer)
-        final_answer = person_name + "人物简介:" + str(answer)
+    def chat4(self):#answerList和contentList
+        name = self.get_one_location_name()
+        cql=f"match(n) where n.label='{name}' return n.info"
+        ret=self.graph.run(cql)
+        if len(ret)==0: raise Exception
+        else: ret=ret[0]
+        final_answer = name + "地点简介:" + str(ret)
         return final_answer
+
+    def search4(self):
+        name = self.get_one_location_name()
+        cql = f"match(n) where n.label='{name}' return n"
+        ret = self.graph.run(cql)
+        if len(ret) == 0:
+            raise Exception
+        else:
+            ret = ret[0]
+        answer_list = {}
+        nodeDict = dict(ret)
+        answer_list['title'] = nodeDict['label']
+        answer_list['info'] = nodeDict['info']
+        answer_list['id'] = str(nodeDict['lid'])
+        answer_list['categories'] = nodeDict['categories']
+
+        res = {
+            'answer': "",
+            'contentList': self.get_rela_nodes(name,name),
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
+
 
     # 4
     def location_info(self, idx):
-        location_name = self.get_one_location_name()
-        if idx == 1:
-            answer_lst = []
-            answer_lst.append(location_name)
-            return answer_lst
+        if idx==0: return self.chat4()
+        else: return self.search4()
 
-        answer = self.get_info(location_name)
-        print(answer)
-        final_answer = location_name + "地点简介:" + str(answer)
+    def chat5(self):#answerList和contentList
+        name = self.get_one_event_name()
+        cql=f"match(n) where n.label='{name}' return n.info"
+        ret=self.graph.run(cql)
+        if len(ret)==0: raise Exception
+        else: ret=ret[0]
+        final_answer = name + "事件简介:" + str(ret)
         return final_answer
+
+    def search5(self):
+        name = self.get_one_event_name()
+        cql = f"match(n) where n.label='{name}' return n"
+        ret = self.graph.run(cql)
+        if len(ret) == 0:
+            raise Exception
+        else:
+            ret = ret[0]
+        answer_list = {}
+        nodeDict = dict(ret)
+        answer_list['title'] = nodeDict['label']
+        answer_list['info'] = nodeDict['info']
+        answer_list['id'] = str(nodeDict['eid'])
+        answer_list['categories'] = nodeDict['categories']
+
+        res = {
+            'answer': "",
+            'contentList': self.get_rela_nodes(name,name),
+            'answerList': answer_list,
+            'code': 0,
+            'showGraphData': {}
+        }
+        print('答案: {}'.format(res))
+        return res
 
     # 5
     def event_info(self, idx):
-        event_name = self.get_one_event_name()
-        if idx == 1:
-            answer_lst = []
-            answer_lst.append(event_name)
-            return answer_lst
-
-        answer = self.get_info(event_name)
-        print(answer)
-        final_answer = event_name + "事件简介:" + str(answer)
-        return final_answer
+        if idx==0: return self.chat5()
+        else: return self.search5()
 
     def chat6(self):
         nr_name = self.get_one_person_name()
@@ -362,6 +443,7 @@ class QuestionTemplate():
             cql += f"()-[:`{titles[i]}`]->"
         cql += f"(m) where n.label='{nr_name}' return m.label"
         ret = self.graph.run(cql)
+        if len(ret)==0: raise Exception
         ret_set = set(ret)
         ret_list = list(ret_set)
         answer_str = "、".join(ret_list)
@@ -396,6 +478,7 @@ class QuestionTemplate():
             cql += f"()-[:`{titles[i]}`]->"
         cql += f"(m) where n.label='{nr_name}' return m"
         ret_list = self.graph.run(cql)
+        if len(ret_list)==0: raise Exception
         answer_list=[]
         for ret in ret_list:
             mydict=dict(ret)
@@ -490,6 +573,7 @@ class QuestionTemplate():
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=(a)-[*..5]->(b) return p"
         ret = self.graph.run(cql)
+        if len(ret): raise Exception
         paths=[]
         for mypath in ret:
             tmp_path=[]
@@ -521,6 +605,7 @@ class QuestionTemplate():
             f"match (b:Person) where b.label='{nr_list[1]}' " \
             f"match p=(a)-[*..5]->(b) return p"
         ret = self.graph.run(cql)
+        if len(ret): raise Exception
         # nodes=[]
         # edges=[]
         nodes=set()
@@ -616,6 +701,8 @@ class QuestionTemplate():
         #         mytype = raw_type[begin + 1:end]
         #         ret.append(mytype)
         #     fret.append(ret)
+
+
 
     # 8
     def live_in(self, idx):

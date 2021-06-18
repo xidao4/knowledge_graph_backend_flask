@@ -733,7 +733,7 @@ class QuestionTemplate():
             'answer': final_answer,
             'contentList': [],
             'answerList': [],
-            'code': 1,
+            'code': 3,
             'showGraphData': {
                 'nodes': new_nodes,
                 'edges': new_edges

@@ -40,6 +40,34 @@ def enablePrint():
 
 # enablePrint()
 
+# 角色的不同称呼
+different_titles = {
+    '贾宝玉': '我 宝哥哥 宝玉 宝兄弟',
+    '宝玉': '我 宝哥哥 宝玉 宝兄弟',
+    '林黛玉': '林妹妹 我 颦儿 林姑娘',
+    '黛玉': '林妹妹 我 颦儿 林姑娘',
+    '薛宝钗': '宝姐姐 宝姐姐 我 宝姑娘',
+    '宝钗': '宝姐姐 宝姐姐 我 宝姑娘',
+    '王熙凤':'凤姐姐 凤哥儿 凤丫头 我',
+    '熙凤':'凤姐姐 凤哥儿 凤丫头 我',
+    '贾母': '老太太 老太太 老太太 老太太',
+    '王夫人':'母亲 舅母 姨母 太太',
+    '贾政': '父亲 舅舅 姨夫 老爷',
+    '贾元春':'宫里的贵妃娘娘 宫里的贵妃娘娘 宫里的贵妃娘娘 宫里的贵妃娘娘',
+    '元春': '宫里的贵妃娘娘 宫里的贵妃娘娘 宫里的贵妃娘娘 宫里的贵妃娘娘',
+    '贾迎春': '迎春 迎春 迎春 迎春',
+    '迎春': '迎春 迎春 迎春 迎春',
+    '贾探春': '探春 探春 探春 探春',
+    '探春': '探春 探春 探春 探春',
+    '贾惜春':'惜春 惜春 惜春 惜春',
+    '惜春':'惜春 惜春 惜春 惜春',
+    '史湘云': '云妹妹 云妹妹 云妹妹 史大姑娘',
+    '湘云': '云妹妹 云妹妹 云妹妹 史大姑娘',
+    '花袭人':  '袭人姐姐 袭人姐姐 袭姑娘 袭人' ,
+    '袭人':  '袭人姐姐 袭人姐姐 袭姑娘 袭人' ,
+    '秦钟': '鲸卿 秦钟 秦钟 秦钟',
+    '林如海':  '姑父 父亲 林妹妹的父亲 林妹妹的父亲'
+}
 
 class Question():
     def __init__(self):
@@ -73,7 +101,7 @@ class Question():
         # 创建问题模板对象
         self.questiontemplate = QuestionTemplate()
 
-    def question_process(self, question, idx):
+    def question_process(self, question, roleId,idx):
         # 接收问题
         self.raw_question = str(question).strip()
         # 对问题进行词性标注
@@ -84,6 +112,17 @@ class Question():
         print('question_template_id_str', self.question_template_id_str)
         # 查询图数据库,得到答案
         self.answer = self.query_template(idx)
+        if self.answer=="我也还不知道！":
+            if roleId=="1":
+                self.answer="好姐姐，千万绕我这一遭，原是我搞忘了!"
+            elif roleId=="2":
+                self.answer="我不知，想来那是件难事，岂能人人都能知晓的。"
+            elif roleId=="3":
+                self.answer="想来也不是件易事，你放心，赶明儿我替你问问老太太太太。"
+            else:
+                self.answer="此事原不该问我，改日问老太太太太便是了。"
+        else:
+            self.answer=self.get_answer_by_role(self.answer,roleId)
         return (self.answer)
 
     def question_posseg(self):
@@ -132,9 +171,21 @@ class Question():
         try:
             answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str, idx)
         except:
-            answer = {
-                'code': -1,
-                'answer': "我也还不知道！"
-            }
-        # answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str)
+            # answer = {
+            #     'code': -1,
+            #     'answer': "我也还不知道！"
+            # }
+            answer="我也还不知道！"
         return answer
+
+    def get_answer_by_role(self,answer,roleId):
+        for key in different_titles.keys():
+            value=different_titles[key]
+            arr=value.split(" ")
+            answer=answer.replace(key,arr[int(roleId)-1])
+        print(answer)
+        return answer
+
+if __name__=="__main__":
+    q=Question()
+    q.get_answer_by_role("宝玉到沁芳桥边桃花底下看《西厢记》，正准备将落花送进池中，黛玉说她早已准备了一个花冢，正来葬花。黛玉发现《西厢记》，宝玉借书中词句，向黛玉表白。黛玉觉得冒犯了自己尊严，引起口角，宝玉赔礼讨饶，黛玉也借《西厢记》词句，嘲笑了宝玉。于是两人收拾落花，葬到花冢里去。","1")

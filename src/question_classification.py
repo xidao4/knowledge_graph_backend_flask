@@ -93,4 +93,4 @@ if __name__ == '__main__':
     q = qc.predict("贾宝玉和林黛玉是什么关系")
     print(q)  # 8
     q = qc.predict("宝玉挨打在第几回")
-    print(q) # 14
+    print(q) # 2

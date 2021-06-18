@@ -132,6 +132,9 @@ class Question():
         try:
             answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str, idx)
         except:
-            answer = "我也还不知道！"
+            answer = {
+                'code': -1,
+                'answer': "我也还不知道！"
+            }
         # answer = self.questiontemplate.get_question_answer(self.pos_quesiton, self.question_template_id_str)
         return answer

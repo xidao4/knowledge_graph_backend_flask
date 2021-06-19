@@ -107,8 +107,9 @@ class Question():
         # 接收问题
         self.raw_question = str(question).strip()
         #将“你”替换为人名
-        if '你' in self.raw_question:
-            self.raw_question=self.raw_question.replace('你',whole_name[int(roleId)-1])
+        if roleId!="0":
+            if '你' in self.raw_question:
+                self.raw_question=self.raw_question.replace('你',whole_name[int(roleId)-1])
         # 对问题进行词性标注
         self.pos_quesiton = self.question_posseg()
         print('pos_question', self.pos_quesiton)

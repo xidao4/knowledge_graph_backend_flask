@@ -609,12 +609,12 @@ class QuestionTemplate():
             nr_list[1] = same_word_dic[nr_list[1]]
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((a)-[*]->(b)) return p"
+            f"match p=shortestPath((a)-[r*]->(b)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret1 = self.graph.run(cql)
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((b)-[*]->(a)) return p"
+            f"match p=shortestPath((b)-[r*]->(a)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret2 = self.graph.run(cql)
         ret = []
@@ -635,12 +635,18 @@ class QuestionTemplate():
                 tmp_path.append(mytype)
             paths.append(tmp_path)
         final_answer = ""
-        for path in paths:
-            answer = nr_list[0]
-            for title in path:
-                answer += "的" + title
-            answer += "是" + nr_list[1] + "。"
-            final_answer += answer
+        #first sentence
+        answer=nr_list[0]
+        for title in paths[0]:
+            answer += "的" + title
+        answer += "是" + nr_list[1] + "。"
+        final_answer += answer
+        #second sentence
+        answer = nr_list[1]
+        for title in paths[1]:
+            answer += "的" + title
+        answer += "是" + nr_list[0] + "。"
+        final_answer += answer
         return final_answer
 
     def search7(self):
@@ -654,12 +660,12 @@ class QuestionTemplate():
             nr_list[1] = same_word_dic[nr_list[1]]
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((a)-[*]->(b)) return p"
+            f"match p=shortestPath((a)-[*]->(b)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret1 = self.graph.run(cql)
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((b)-[*]->(a)) return p"
+            f"match p=shortestPath((b)-[*]->(a)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret2 = self.graph.run(cql)
         ret = []
@@ -692,12 +698,12 @@ class QuestionTemplate():
 
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((a)-[*]->(b)) return NODES(p)"
+            f"match p=shortestPath((a)-[*]->(b)) where all(x in r where x.type='人与人') return NODES(p)"
         print(cql)
         ret1 = self.graph.run(cql)
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((b)-[*]->(a)) return NODES(p)"
+            f"match p=shortestPath((b)-[*]->(a)) where all(x in r where x.type='人与人') return NODES(p)"
         print(cql)
         ret2 = self.graph.run(cql)
         ret = []

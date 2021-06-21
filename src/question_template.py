@@ -42,7 +42,7 @@ same_word_dic = {
     '绛洞花主': '贾宝玉', '绛洞花王': '贾宝玉', '多情公子': '贾宝玉', '槛内人': '贾宝玉', '怡红院浊玉': '贾宝玉',
     '黛玉': '林黛玉', '潇湘妃子': '林黛玉', '颦儿': '林黛玉', '颦颦': '林黛玉', '林姑娘': '林黛玉', '林妹妹': '林黛玉',
     '林丫头': '林黛玉',
-    '宝钗': '宝钗', '蘅芜君': '薛宝钗', '宝姐姐': '薛宝钗', '宝丫头': '薛宝钗', '宝姑娘': '薛宝钗',
+    '宝钗': '薛宝钗', '蘅芜君': '薛宝钗', '宝姐姐': '薛宝钗', '宝丫头': '薛宝钗', '宝姑娘': '薛宝钗',
     '熙凤': '王熙凤', '凤姐': '王熙凤', '凤姐儿': '王熙凤', '凤哥': '王熙凤', '凤哥儿': '王熙凤', '凤辣子': '王熙凤',
     '破落户': '王熙凤', '泼皮破落户': '王熙凤',
     '老太太': '贾母', '史太君': '贾母',
@@ -56,6 +56,10 @@ same_word_dic = {
     '湘云醉卧芍药铺': '湘云醉眠芍药裀',
     '湘云醉眠芍药裀': '湘云醉眠芍药裀',
     '湘云醉眠芍药': '湘云醉眠芍药裀',
+    "北静王": "北静郡王", "水溶": "北静郡王",
+    "东安郡王穆莳拜": "东安郡王",
+    "荳官": "豆官",
+    '林红玉': '小红', '红玉': '小红',
 }
 dictnum = {'零': 0, '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '百': 12, '千': 13,
            '万': 14, '亿': 18, '两': 2,
@@ -146,6 +150,22 @@ class QuestionTemplate():
             return name
         except:
             return "-1"
+
+    def get_person_names(self):
+        # 获取nm在原问题中的下标
+        try:
+            indexs=[]
+            for i in range(len(self.question_flag)):
+                if flag=='nr':
+                    indexs.append(i)
+            names=[]
+            # 获取人物名称
+            for idx in indexs:
+                names.append(self.question_word[idx])
+            return names
+        except:
+            return "-1"
+
 
     # 获取地点名字
     def get_one_location_name(self):
@@ -373,7 +393,7 @@ class QuestionTemplate():
         if idx==0: return self.chat3()
         else: return self.search3()
 
-    def chat4(self):#answerList和contentList
+    def chat4(self):# answerList和contentList
         name = self.get_one_location_name()
         cql=f"match(n) where n.label='{name}' return n.info"
         ret=self.graph.run(cql)
@@ -620,33 +640,40 @@ class QuestionTemplate():
         ret = []
         for ele in ret1:
             ret.append(ele)
+        if len(ret) == 0: ret.append([])
         for ele in ret2:
             ret.append(ele)
-        if len(ret)==0: raise Exception
-        paths=[]
+        if len(ret) == 0: raise Exception
+        paths = []
         for mypath in ret:
-            tmp_path=[]
-            for relationship in mypath.relationships:
-                raw_type = str(type(relationship))
-                print(raw_type)
-                begin = raw_type.rfind('.')
-                end = raw_type.rfind('\'')
-                mytype = raw_type[begin + 1:end]
-                tmp_path.append(mytype)
+            tmp_path = []
+            if len(mypath) != 0:
+                for relationship in mypath.relationships:
+                    raw_type = str(type(relationship))
+                    print(raw_type)
+                    begin = raw_type.rfind('.')
+                    end = raw_type.rfind('\'')
+                    mytype = raw_type[begin + 1:end]
+                    tmp_path.append(mytype)
             paths.append(tmp_path)
         final_answer = ""
-        #first sentence
-        answer=nr_list[0]
-        for title in paths[0]:
-            answer += "的" + title
-        answer += "是" + nr_list[1] + "。"
-        final_answer += answer
-        #second sentence
-        answer = nr_list[1]
-        for title in paths[1]:
-            answer += "的" + title
-        answer += "是" + nr_list[0] + "。"
-        final_answer += answer
+        # first sentence
+        if len(paths[0]) != 0:
+            answer = nr_list[0]
+            for title in paths[0]:
+                answer += "的" + title
+            answer += "是" + nr_list[1] + "。"
+            print(answer)
+            final_answer += answer
+        # second sentence
+        if len(paths) != 1 and len(paths[1]) != 0:
+            answer = nr_list[1]
+            for title in paths[1]:
+                answer += "的" + title
+            answer += "是" + nr_list[0] + "。"
+            print(answer)
+            final_answer += answer
+        print(final_answer)
         return final_answer
 
     def search7(self):
@@ -660,17 +687,18 @@ class QuestionTemplate():
             nr_list[1] = same_word_dic[nr_list[1]]
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((a)-[*]->(b)) where all(x in r where x.type='人与人') return p"
+            f"match p=shortestPath((a)-[r*]->(b)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret1 = self.graph.run(cql)
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((b)-[*]->(a)) where all(x in r where x.type='人与人') return p"
+            f"match p=shortestPath((b)-[r*]->(a)) where all(x in r where x.type='人与人') return p"
         print(cql)
         ret2 = self.graph.run(cql)
         ret = []
         for ele in ret1:
             ret.append(ele)
+        if len(ret) == 0: ret.append([])
         for ele in ret2:
             ret.append(ele)
         if len(ret)==0: raise  Exception
@@ -679,31 +707,32 @@ class QuestionTemplate():
         paths = []
         for mypath in ret:
             tmp_path = []
-            for relationship in mypath.relationships:
-                raw_type = str(type(relationship))
-                print(raw_type)
-                begin = raw_type.rfind('.')
-                end = raw_type.rfind('\'')
-                mytype = raw_type[begin + 1:end]
-                tmp_path.append(mytype)
-                #
-                displayEdge = {}
-                edgeDict = dict(relationship)
-                displayEdge['label'] = mytype
-                # displayEdge['type']=edgeDict['type']
-                displayEdge['source'] = str(edgeDict['from'])
-                displayEdge['target'] = str(edgeDict['to'])
-                edges.add(str(displayEdge))
+            if len(mypath) != 0:
+                for relationship in mypath.relationships:
+                    raw_type = str(type(relationship))
+                    print(raw_type)
+                    begin = raw_type.rfind('.')
+                    end = raw_type.rfind('\'')
+                    mytype = raw_type[begin + 1:end]
+                    tmp_path.append(mytype)
+                    #
+                    displayEdge = {}
+                    edgeDict = dict(relationship)
+                    displayEdge['label'] = mytype
+                    # displayEdge['type']=edgeDict['type']
+                    displayEdge['source'] = str(edgeDict['from'])
+                    displayEdge['target'] = str(edgeDict['to'])
+                    edges.add(str(displayEdge))
             paths.append(tmp_path)
 
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((a)-[*]->(b)) where all(x in r where x.type='人与人') return NODES(p)"
+            f"match p=shortestPath((a)-[r*]->(b)) where all(x in r where x.type='人与人') return NODES(p)"
         print(cql)
         ret1 = self.graph.run(cql)
         cql = f"match (a:Person) where a.label='{nr_list[0]}' " \
             f"match (b:Person) where b.label='{nr_list[1]}' " \
-            f"match p=shortestPath((b)-[*]->(a)) where all(x in r where x.type='人与人') return NODES(p)"
+            f"match p=shortestPath((b)-[r*]->(a)) where all(x in r where x.type='人与人') return NODES(p)"
         print(cql)
         ret2 = self.graph.run(cql)
         ret = []
@@ -721,12 +750,23 @@ class QuestionTemplate():
                 nodes.add(str(displayNode))
 
         final_answer = ""
-        for path in paths:
+        # first sentence
+        if len(paths[0]) != 0:
             answer = nr_list[0]
-            for title in path:
+            for title in paths[0]:
                 answer += "的" + title
             answer += "是" + nr_list[1] + "。"
+            print(answer)
             final_answer += answer
+        # second sentence
+        if len(paths) != 1 and len(paths[1])!=0:
+            answer = nr_list[1]
+            for title in paths[1]:
+                answer += "的" + title
+            answer += "是" + nr_list[0] + "。"
+            print(answer)
+            final_answer += answer
+        print(final_answer)
 
         # answer和showGraphData
         new_nodes = []

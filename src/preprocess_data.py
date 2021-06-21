@@ -13,6 +13,8 @@ from question_classification import Question_classify
 from question_template import QuestionTemplate
 from settings import *
 
+from question_template import same_word_dic
+
 
 # # 将自定义字典写入文件
 # result = []
@@ -75,6 +77,7 @@ class Question():
     def __init__(self):
         # 初始化相关设置：读取词汇表，训练分类器，连接数据库
         self.init_config()
+        self.template=QuestionTemplate()
 
     def init_config(self):
         # # 读取词汇表
@@ -107,9 +110,11 @@ class Question():
         # 接收问题
         self.raw_question = str(question).strip()
         #将“你”替换为人名
-        if roleId!="0":
-            if '你' in self.raw_question:
-                self.raw_question=self.raw_question.replace('你',whole_name[int(roleId)-1])
+        if idx!="1":
+            if roleId!="0":
+                if '你' in self.raw_question:
+                    self.raw_question=self.raw_question.replace('你',whole_name[int(roleId)-1])
+
         # 对问题进行词性标注
         self.pos_quesiton = self.question_posseg()
         print('pos_question', self.pos_quesiton)
@@ -135,6 +140,27 @@ class Question():
             return self.answer
 
     def question_posseg(self):
+        #替换 和
+        if "和" in self.raw_question:
+            self.raw_question=self.raw_question.replace("和","与")
+        if "住在哪" in self.raw_question:
+            self.raw_question = "哈哈哈哈" + self.raw_question
+        # 同义词
+        event_name = self.template.get_one_event_name()
+        if event_name!="-1":
+            if event_name in same_word_dic.keys():
+                self.raw_question=self.raw_question.replace(event_name,same_word_dic[event_name])
+        person_names=self.template.get_person_names()
+        if person_names!="-1":
+            for person_name in person_names:
+                if person_name in same_word_dic.keys():
+                    self.raw_question = self.raw_question.replace(person_name, same_word_dic[person_name])
+        # 替换爸爸 妈妈
+        if '爸爸' in self.raw_question:
+            self.raw_question = self.raw_question.replace('爸爸', '父亲')
+        if '妈妈' in self.raw_question:
+            self.raw_question = self.raw_question.replace('妈妈', '母亲')
+
         jieba.load_userdict(USER_DICT_PATH)
         clean_question = re.sub(CLEAN_REGEX, "", self.raw_question)
         self.clean_question = clean_question
@@ -154,6 +180,8 @@ class Question():
         self.question_flag = question_flag
         print('question_word', question_word)
         print('question_flag', question_flag)
+
+
         return result
 
     def get_question_template(self):
@@ -188,10 +216,29 @@ class Question():
         return answer
 
     def get_answer_by_role(self,answer,roleId):
+        print(answer)
+        if roleId=="1":
+            if "贾宝玉的母亲是" in answer: return "我的母亲是王夫人"
+            if "贾宝玉的父亲是" in answer: return "我的父亲是贾政"
+        if roleId=="2":
+            if "林黛玉的父亲是" in answer: return "我的父亲是林如海"
         for key in different_titles.keys():
             value=different_titles[key]
             arr=value.split(" ")
-            answer=answer.replace(key,arr[int(roleId)-1])
+            if roleId == "3":
+                if "是王夫人" in answer or "是贾政" in answer:
+                    if key!="王夫人" and key!="贾政":
+                        answer = answer.replace(key, arr[int(roleId) - 1])
+                else:
+                    answer = answer.replace(key, arr[int(roleId) - 1])
+            if roleId=="2":
+                if "是王夫人" in answer or "是贾政" in answer:
+                    if key!="王夫人" and key!="贾政":
+                        answer = answer.replace(key, arr[int(roleId) - 1])
+                else:
+                    answer = answer.replace(key, arr[int(roleId) - 1])
+            else:
+                answer=answer.replace(key,arr[int(roleId)-1])
         print(answer)
         return answer
 

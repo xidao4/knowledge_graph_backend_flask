@@ -74,8 +74,8 @@ class Question_classify():
 
 if __name__ == '__main__':
     qc = Question_classify()
-    q = qc.predict("贾宝玉的父亲的父亲的父亲的兄弟的儿子的儿子的儿子的儿子的老婆")
-    print(q) #6
+    q = qc.predict("ne")
+    print(q) #5
     q = qc.predict("贾宝玉的父亲是谁")
     print(q) #6
     q = qc.predict("谁是贾宝玉的父亲")
@@ -88,9 +88,11 @@ if __name__ == '__main__':
     print(q) #3
     # q = qc.predict("荣国府是哪些人的家")
     # print(q) #8
-    q = qc.predict("贾宝玉住在哪")
+    q = qc.predict("哈哈哈哈贾宝玉住在哪")
     print(q) #8
     q = qc.predict("贾宝玉和林黛玉是什么关系")
-    print(q)  # 8
+    print(q)  # 7
     q = qc.predict("宝玉挨打在第几回")
     print(q) # 2
+    q = qc.predict("宝玉参与的主要事件")
+    print(q)  # 12
